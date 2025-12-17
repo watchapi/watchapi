@@ -11,7 +11,13 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:watchapi.overview"
+    "onView:watchapi.activity",
+    "onCommand:watchapi.newRequest",
+    "onCommand:watchapi.activity.clear",
+    "onCommand:watchapi.activity.open",
+    "onCommand:watchapi.activity.delete",
+    "onCommand:watchapi.activity.filter",
+    "onCommand:watchapi.activity.seed"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -19,6 +25,38 @@
       {
         "command": "watchapi-client.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "watchapi.newRequest",
+        "title": "WatchAPI: New Request",
+        "icon": "$(add)"
+      },
+      {
+        "command": "watchapi.activity.clear",
+        "title": "WatchAPI: Clear Activity",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "watchapi.activity.open",
+        "title": ""
+      },
+      {
+        "command": "watchapi.activity.delete",
+        "title": "WatchAPI: Delete Activity Item",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "watchapi.activity.filter",
+        "title": "WatchAPI: Filter Activity",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "watchapi.openSettings",
+        "title": "WatchAPI: Open Settings"
+      },
+      {
+        "command": "watchapi.activity.seed",
+        "title": "WatchAPI: Add Sample Activity"
       }
     ],
     "viewsContainers": {
@@ -34,18 +72,48 @@
       "watchapi": [
         {
           "id": "watchapi.activity",
-          "name": ""
+          "name": "Activity"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "watchapi.activity",
+        "contents": "No activity yet.\n\n[New Request](command:watchapi.newRequest)\n\n[Add sample activity](command:watchapi.activity.seed)",
+        "when": "watchapi:hasActivity == false"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "watchapi.newRequest",
+          "when": "view == watchapi.activity",
+          "group": "navigation"
+        },
+        {
+          "command": "watchapi.activity.filter",
+          "when": "view == watchapi.activity",
+          "group": "navigation"
+        },
+        {
+          "command": "watchapi.activity.clear",
+          "when": "view == watchapi.activity",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "watchapi.activity.open",
+          "when": "view == watchapi.activity && viewItem == activityItem",
+          "group": "inline"
+        },
+        {
+          "command": "watchapi.activity.delete",
+          "when": "view == watchapi.activity && viewItem == activityItem",
+          "group": "inline"
         }
       ]
     }
-  },
-  "menus": {
-    "view/item/context": [
-      {
-        "command": "watchapi.activity.delete",
-        "when": "view == watchapi.activity && viewItem == activityItem"
-      }
-    ]
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",

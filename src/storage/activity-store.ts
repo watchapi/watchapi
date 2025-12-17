@@ -17,6 +17,11 @@ export class ActivityStore {
     await this.context.globalState.update(KEY, items.slice(0, 200));
   }
 
+  async deleteById(id: string) {
+    const items = this.getAll().filter((item) => item.id !== id);
+    await this.context.globalState.update(KEY, items);
+  }
+
   async clear() {
     await this.context.globalState.update(KEY, []);
   }

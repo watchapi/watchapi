@@ -8,6 +8,7 @@ export class ActivityProvider
 {
   private _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
+  private filter = "";
 
   constructor(private store: ActivityStore) {}
 
@@ -15,15 +16,27 @@ export class ActivityProvider
     this._onDidChangeTreeData.fire();
   }
 
+  getFilter() {
+    return this.filter;
+  }
+
+  setFilter(next: string) {
+    this.filter = next;
+    this.refresh();
+  }
+
   getTreeItem(el: ActivityTreeItem) {
     return el;
   }
 
   getChildren(): vscode.TreeItem[] {
-    if (this.store.getAll().length === 0) {
-      return [new vscode.TreeItem("No activity yet")];
-    }
+    const all = this.store.getAll();
+    const trimmed = this.filter.trim().toLowerCase();
+    const items =
+      trimmed.length === 0
+        ? all
+        : all.filter((item) => item.url.toLowerCase().includes(trimmed));
 
-    return this.store.getAll().map((item) => new ActivityTreeItem(item));
+    return items.map((item) => new ActivityTreeItem(item));
   }
 }
