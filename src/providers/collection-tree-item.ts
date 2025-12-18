@@ -5,6 +5,7 @@ export class CollectionTreeItem extends vscode.TreeItem {
   constructor(public readonly collection: Collection) {
     super(collection.name, vscode.TreeItemCollapsibleState.Collapsed);
 
+    this.id = collection.id;
     this.contextValue = "collectionItem";
     // this.iconPath = new vscode.ThemeIcon("server");
     this.description =

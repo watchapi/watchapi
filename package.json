@@ -14,6 +14,7 @@
     "onView:watchapi.collections",
     "onView:watchapi.activity",
     "onCommand:watchapi.newRequest",
+    "onCommand:watchapi.auth.login",
     "onCommand:watchapi.activity.clear",
     "onCommand:watchapi.activity.open",
     "onCommand:watchapi.activity.delete",
@@ -23,19 +24,50 @@
     "onCommand:watchapi.collections.addEndpoint",
     "onCommand:watchapi.collections.openEndpoint",
     "onCommand:watchapi.collections.deleteCollection",
-    "onCommand:watchapi.collections.deleteEndpoint"
+    "onCommand:watchapi.collections.deleteEndpoint",
+    "onCommand:watchapi.collections.renameCollection",
+    "onCommand:watchapi.collections.refresh"
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "WatchAPI Client",
+      "properties": {
+        "watchapi.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "Base URL for the WatchAPI server (tRPC endpoint is /api/trpc)."
+        },
+        "watchapi.apiToken": {
+          "type": "string",
+          "default": "",
+          "description": "Bearer token used for authenticated WatchAPI requests."
+        },
+        "watchapi.organizationId": {
+          "type": "string",
+          "default": "",
+          "description": "Optional organization ID to send as x-organization-id."
+        }
+      }
+    },
     "commands": [
       {
         "command": "watchapi-client.helloWorld",
         "title": "Hello World"
       },
       {
+        "command": "watchapi.auth.login",
+        "title": "WatchAPI: Login"
+      },
+      {
         "command": "watchapi.collections.create",
         "title": "WatchAPI: New Collection",
         "icon": "$(add)"
+      },
+      {
+        "command": "watchapi.collections.refresh",
+        "title": "WatchAPI: Refresh Collections",
+        "icon": "$(refresh)"
       },
       {
         "command": "watchapi.collections.addEndpoint",
@@ -44,7 +76,12 @@
       },
       {
         "command": "watchapi.collections.openEndpoint",
-        "title": ""
+        "title": "WatchAPI: Open Endpoint"
+      },
+      {
+        "command": "watchapi.collections.renameCollection",
+        "title": "WatchAPI: Rename Collection",
+        "icon": "$(edit)"
       },
       {
         "command": "watchapi.collections.deleteCollection",
@@ -68,7 +105,7 @@
       },
       {
         "command": "watchapi.activity.open",
-        "title": ""
+        "title": "WatchAPI: Open Activity Item"
       },
       {
         "command": "watchapi.activity.delete",
@@ -103,14 +140,6 @@
         {
           "id": "watchapi.collections",
           "name": "Collections"
-        },
-        {
-          "id": "watchapi.environments",
-          "name": "Environments"
-        },
-        {
-          "id": "watchapi.activity",
-          "name": "Activity"
         }
       ]
     },
@@ -125,6 +154,11 @@
       "view/title": [
         {
           "command": "watchapi.collections.create",
+          "when": "view == watchapi.collections",
+          "group": "navigation"
+        },
+        {
+          "command": "watchapi.collections.refresh",
           "when": "view == watchapi.collections",
           "group": "navigation"
         },
@@ -147,6 +181,11 @@
       "view/item/context": [
         {
           "command": "watchapi.collections.addEndpoint",
+          "when": "view == watchapi.collections && viewItem == collectionItem",
+          "group": "inline"
+        },
+        {
+          "command": "watchapi.collections.renameCollection",
           "when": "view == watchapi.collections && viewItem == collectionItem",
           "group": "inline"
         },
@@ -186,6 +225,9 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test"
+  },
+  "dependencies": {
+    "@trpc/client": "11.6.0"
   },
   "devDependencies": {
     "@types/vscode": "^1.107.0",

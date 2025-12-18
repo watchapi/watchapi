@@ -1,8 +1,15 @@
-export type Method = "GET" | "POST" | "PUT" | "DELETE";
+export type Method =
+  | "GET"
+  | "POST"
+  | "PUT"
+  | "PATCH"
+  | "DELETE"
+  | "HEAD"
+  | "OPTIONS";
 
 export interface ActivityItem {
   id: string;
-  method: "GET" | "POST" | "PUT" | "DELETE";
+  method: Method;
   url: string;
   timestamp: number;
 }

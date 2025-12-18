@@ -20,12 +20,17 @@ If you have any requirements or dependencies, add a section describing those and
 
 Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
 
-For example:
-
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- `watchapi.apiUrl`: Base URL for the WatchAPI server (tRPC endpoint is `/api/trpc`).
+- `watchapi.apiToken`: Bearer token for authenticated requests.
+- `watchapi.organizationId`: Optional org ID header (`x-organization-id`).
+
+Internally the extension exposes a small untyped tRPC client wrapper at `src/core/api-client.ts` that you can use from extension code.
+
+## Commands
+
+- `WatchAPI: Login` (`watchapi.auth.login`): Upgrades the auto-created guest account to a real user by calling `auth.upgradeGuest`, then stores tokens in VS Code Secret Storage.
 
 ## Known Issues
 

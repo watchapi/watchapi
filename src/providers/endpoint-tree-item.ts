@@ -8,8 +8,9 @@ export class EndpointTreeItem extends vscode.TreeItem {
   ) {
     super(labelFor(endpoint), vscode.TreeItemCollapsibleState.None);
 
+    this.id = `${collection.id}:${endpoint.id}`;
     this.contextValue = "endpointItem";
-    this.iconPath = methodIcon(endpoint.method);
+    // this.iconPath = methodIcon(endpoint.method);
     this.tooltip = `${endpoint.method} ${endpoint.url}`;
 
     this.command = {
@@ -21,9 +22,12 @@ export class EndpointTreeItem extends vscode.TreeItem {
 }
 
 function labelFor(endpoint: CollectionEndpoint) {
-  // VS Code tree indentation for leaf nodes can look slightly left compared to
-  // collapsible parents; prefix nudges the endpoint label to visually align.
-  return `  ${endpoint.method} ${displayUrl(endpoint.url)}`;
+  const name = endpoint.name?.trim();
+  if (name) {
+    return name;
+  }
+
+  return `${endpoint.method} ${displayUrl(endpoint.url)}`;
 }
 
 function displayUrl(url: string) {

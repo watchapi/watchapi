@@ -9,7 +9,11 @@ import { CollectionTreeItem } from "./providers/collection-tree-item";
 import { EndpointTreeItem } from "./providers/endpoint-tree-item";
 import { openSavedHttpFile } from "./services/editor.service";
 import { buildRequestDocument } from "./documents/request-document";
-import { CollectionsStore } from "./storage/collections-store";
+import {
+  ensureGuestLogin,
+  upgradeGuestWithCredentials,
+} from "./services/auth.service";
+import { CoreApiService } from "./services/core-api.service";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log(
@@ -19,15 +23,9 @@ export function activate(context: vscode.ExtensionContext) {
   const store = new ActivityStore(context);
   const activityProvider = new ActivityProvider(store);
 
-  const collectionsStore = new CollectionsStore(context);
-  const collectionsProvider = new CollectionsProvider(collectionsStore);
-
-  const disposable = vscode.commands.registerCommand(
-    "watchapi-client.helloWorld",
-    () => {
-      vscode.window.showInformationMessage("Hello World from watchapi-client!");
-    },
-  );
+  const coreApi = new CoreApiService(context);
+  const collectionsService = coreApi;
+  const collectionsProvider = new CollectionsProvider(collectionsService);
 
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider(
@@ -90,8 +88,17 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
-      await collectionsStore.addCollection(name.trim());
-      collectionsProvider.refresh();
+      try {
+        await collectionsService.createCollection(name.trim());
+        await collectionsProvider.pullAndRefresh();
+      } catch (error) {
+        console.error(error);
+        vscode.window.showErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Failed to create collection",
+        );
+      }
     }),
   );
 
@@ -108,15 +115,27 @@ export function activate(context: vscode.ExtensionContext) {
           return;
         }
 
-        const endpoint: CollectionEndpoint = {
-          id: crypto.randomUUID(),
-          method: request.method,
-          url: request.url,
-          timestamp: request.timestamp,
-        };
+        try {
+          const suggestedName = inferEndpointName(request.url);
+          const name = await vscode.window.showInputBox({
+            prompt: "Endpoint name",
+            placeHolder: suggestedName,
+            value: suggestedName,
+          });
 
-        await collectionsStore.addEndpoint(item.collection.id, endpoint);
-        collectionsProvider.refresh();
+          await collectionsService.createEndpoint({
+            collectionId: item.collection.id,
+            name: name?.trim() || suggestedName,
+            url: request.url,
+            method: request.method,
+          });
+          await collectionsProvider.pullAndRefresh();
+        } catch (error) {
+          console.error(error);
+          vscode.window.showErrorMessage(
+            error instanceof Error ? error.message : "Failed to add endpoint",
+          );
+        }
       },
     ),
   );
@@ -150,8 +169,17 @@ export function activate(context: vscode.ExtensionContext) {
           return;
         }
 
-        await collectionsStore.deleteCollection(item.collection.id);
-        collectionsProvider.refresh();
+        try {
+          await collectionsService.deleteCollection(item.collection.id);
+          await collectionsProvider.pullAndRefresh();
+        } catch (error) {
+          console.error(error);
+          vscode.window.showErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Failed to delete collection",
+          );
+        }
       },
     ),
   );
@@ -171,11 +199,64 @@ export function activate(context: vscode.ExtensionContext) {
           return;
         }
 
-        await collectionsStore.deleteEndpoint(
-          item.collection.id,
-          item.endpoint.id,
-        );
-        collectionsProvider.refresh();
+        try {
+          await collectionsService.deleteEndpoint(item.endpoint.id);
+          await collectionsProvider.pullAndRefresh();
+        } catch (error) {
+          console.error(error);
+          vscode.window.showErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Failed to delete endpoint",
+          );
+        }
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "watchapi.collections.renameCollection",
+      async (item?: CollectionTreeItem) => {
+        if (!item) {
+          return;
+        }
+
+        const nextName = await vscode.window.showInputBox({
+          prompt: "Rename collection",
+          value: item.collection.name,
+        });
+        if (!nextName?.trim() || nextName.trim() === item.collection.name) {
+          return;
+        }
+
+        try {
+          await collectionsService.renameCollection({
+            id: item.collection.id,
+            name: nextName.trim(),
+          });
+          await collectionsProvider.pullAndRefresh();
+        } catch (error) {
+          console.error(error);
+          vscode.window.showErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Failed to rename collection",
+          );
+        }
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "watchapi.collections.refresh",
+      async () => {
+        try {
+          await collectionsProvider.pullAndRefresh();
+        } catch (error) {
+          console.error(error);
+        }
       },
     ),
   );
@@ -247,15 +328,75 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   );
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand("watchapi.auth.login", async () => {
+      try {
+        const email = await vscode.window.showInputBox({
+          prompt: "Email",
+          placeHolder: "you@example.com",
+        });
+        if (!email?.trim()) {
+          return;
+        }
+
+        const name = await vscode.window.showInputBox({
+          prompt: "Name (optional)",
+          placeHolder: "Jane Doe",
+        });
+
+        const password = await vscode.window.showInputBox({
+          prompt: "Password",
+          password: true,
+        });
+        if (!password) {
+          return;
+        }
+
+        await ensureGuestLogin(context);
+
+        const result = await upgradeGuestWithCredentials(context, {
+          email: email.trim(),
+          name: name?.trim() || undefined,
+          password,
+        });
+
+        if (result.requiresEmailVerification) {
+          vscode.window.showInformationMessage(
+            `Logged in as ${result.user.email}. Check your email to verify your account.`,
+          );
+        } else {
+          vscode.window.showInformationMessage(
+            `Logged in as ${result.user.email}.`,
+          );
+        }
+      } catch (error) {
+        console.error(error);
+        vscode.window.showErrorMessage(
+          error instanceof Error ? error.message : "Login failed",
+        );
+      }
+    }),
+  );
+
   void setHasActivityContext(store);
 
-  context.subscriptions.push(disposable);
+  void ensureGuestLogin(context).catch((error) => {
+    console.error("Guest login failed:", error);
+  });
 }
 
 export function deactivate() {}
 
 async function promptForRequest() {
-  const methods = ["GET", "POST", "PUT", "DELETE"] as const satisfies readonly Method[];
+  const methods = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "HEAD",
+    "OPTIONS",
+  ] as const satisfies readonly Method[];
   const picked = await vscode.window.showQuickPick(
     methods.map((method) => ({ label: method, method })),
     { placeHolder: "HTTP method" },
@@ -277,8 +418,22 @@ async function promptForRequest() {
 
 async function confirmDelete(message: string) {
   const confirm = "Delete";
-  const picked = await vscode.window.showWarningMessage(message, { modal: true }, confirm);
+  const picked = await vscode.window.showWarningMessage(
+    message,
+    { modal: true },
+    confirm,
+  );
   return picked === confirm;
+}
+
+function inferEndpointName(url: string) {
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname === "/" ? "" : parsed.pathname;
+    return `${parsed.host}${path}${parsed.search}`;
+  } catch {
+    return url;
+  }
 }
 
 async function setHasActivityContext(store: ActivityStore) {
