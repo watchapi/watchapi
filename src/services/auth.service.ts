@@ -40,6 +40,27 @@ function decodeJwt(token: string): JwtPayload | null {
   }
 }
 
+function getErrorMessage(error: unknown): string {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  const maybeMessage = (error as { message?: unknown })?.message;
+  return typeof maybeMessage === "string" ? maybeMessage : "";
+}
+
+export function isDeviceAlreadyRegisteredError(error: unknown): boolean {
+  return /device is already registered/i.test(getErrorMessage(error));
+}
+
+export function isEmailAlreadyRegisteredError(error: unknown): boolean {
+  return /email already exists/i.test(getErrorMessage(error));
+}
+
 function isTokenExpired(token: string): boolean {
   const payload = decodeJwt(token);
   if (!payload?.exp) {
@@ -192,6 +213,25 @@ export async function upgradeGuestWithCredentials(
     user: { id: string; email: string; name?: string; avatar?: string; role: string };
     tokens: Tokens;
   }>("auth.upgradeGuest", input);
+
+  await storeTokens(context, result.tokens);
+  return result;
+}
+
+export async function loginWithCredentials(
+  context: vscode.ExtensionContext,
+  input: {
+    email: string;
+    password: string;
+  },
+) {
+  const installId = await getOrCreateInstallId(context);
+  const client = createApiClientFromConfig({ installId });
+
+  const result = await client.mutation<{
+    user: { id: string; email: string; name?: string; avatar?: string; role: string };
+    tokens: Tokens;
+  }>("auth.login", input);
 
   await storeTokens(context, result.tokens);
   return result;

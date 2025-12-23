@@ -2,6 +2,9 @@ import * as vscode from "vscode";
 import {
   ensureGuestLogin,
   getOrCreateInstallId,
+  isDeviceAlreadyRegisteredError,
+  isEmailAlreadyRegisteredError,
+  loginWithCredentials,
   upgradeGuestWithCredentials,
 } from "../services/auth.service";
 import { getApiClientOptionsFromConfig } from "../services/trpc.service";
@@ -31,22 +34,41 @@ export function registerAuthCommands(context: vscode.ExtensionContext) {
           return;
         }
 
-        await ensureGuestLogin(context);
+        const trimmedEmail = email.trim();
 
-        const result = await upgradeGuestWithCredentials(context, {
-          email: email.trim(),
-          name: name?.trim() || undefined,
-          password,
-        });
+        try {
+          await ensureGuestLogin(context);
+          const result = await upgradeGuestWithCredentials(context, {
+            email: trimmedEmail,
+            name: name?.trim() || undefined,
+            password,
+          });
 
-        if (result.requiresEmailVerification) {
-          vscode.window.showInformationMessage(
-            `Logged in as ${result.user.email}. Check your email to verify your account.`,
-          );
-        } else {
-          vscode.window.showInformationMessage(
-            `Logged in as ${result.user.email}.`,
-          );
+          if (result.requiresEmailVerification) {
+            vscode.window.showInformationMessage(
+              `Logged in as ${result.user.email}. Check your email to verify your account.`,
+            );
+          } else {
+            vscode.window.showInformationMessage(
+              `Logged in as ${result.user.email}.`,
+            );
+          }
+        } catch (error) {
+          if (
+            isDeviceAlreadyRegisteredError(error) ||
+            isEmailAlreadyRegisteredError(error)
+          ) {
+            const result = await loginWithCredentials(context, {
+              email: trimmedEmail,
+              password,
+            });
+            vscode.window.showInformationMessage(
+              `Logged in as ${result.user.email}.`,
+            );
+            return;
+          }
+
+          throw error;
         }
       } catch (error) {
         console.error(error);
@@ -58,7 +80,13 @@ export function registerAuthCommands(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("watchapi.auth.openWebLogin", async () => {
       try {
         const installId = await getOrCreateInstallId(context);
-        await ensureGuestLogin(context, { installId });
+        try {
+          await ensureGuestLogin(context, { installId });
+        } catch (error) {
+          if (!isDeviceAlreadyRegisteredError(error)) {
+            throw error;
+          }
+        }
 
         const payload = Buffer.from(
           JSON.stringify({
