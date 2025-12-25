@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { CollectionsProvider } from "../providers/collections-provider";
+import { CollectionsProvider } from "../collections/collections.provider";
 
 export function registerCollectionsTreeView(
   context: vscode.ExtensionContext,

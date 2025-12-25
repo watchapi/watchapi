@@ -7,7 +7,7 @@ import {
   type NextRouteNode,
   type TrpcProcedureNode,
 } from "@watchapi/cli";
-import { CollectionsProvider } from "../providers/collections-provider";
+import { CollectionsProvider } from "../collections/collections.provider";
 import { HttpMethod } from "../models/request";
 import { CoreApiService } from "../services/core-api.service";
 

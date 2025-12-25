@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { CollectionsProvider } from "../providers/collections-provider";
+import { CollectionsProvider } from "../collections/collections.provider";
 import { WATCHAPI_SCHEME } from "../providers/virtual-request-file-system";
 import { RequestLinkStore } from "../storage/request-link-store";
 import { extractEndpointIdFromHttpDocument } from "../utils/watchapi-request-metadata";

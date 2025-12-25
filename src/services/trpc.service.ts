@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { ApiClient, type ApiClientOptions } from "../core";
+import { ApiClient, type ApiClientOptions } from "../api";
 
 const CONFIG_NAMESPACE = "watchapi";
 

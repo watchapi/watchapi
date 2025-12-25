@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { CollectionsProvider } from "../providers/collections-provider";
-import { ensureGuestLogin } from "../services/auth.service";
+import { CollectionsProvider } from "../collections/collections.provider";
+import { ensureGuestLogin } from "../auth/auth.service";
 import { CoreApiService } from "../services/core-api.service";
 import { RequestLinkStore } from "../storage/request-link-store";
 import {
@@ -50,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
   registerAuthCommands(context);
   registerFrameworkUploads(context, { collectionsProvider, coreApi });
 
-  void ensureGuestLogin(context).catch((error) => {
+  void ensureGuestLogin(context).catch((error: any) => {
     console.error("Guest login failed:", error);
   });
 }

@@ -6,7 +6,7 @@ import {
   isEmailAlreadyRegisteredError,
   loginWithCredentials,
   upgradeGuestWithCredentials,
-} from "../services/auth.service";
+} from "../auth/auth.service";
 import { getApiClientOptionsFromConfig } from "../services/trpc.service";
 
 export function registerAuthCommands(context: vscode.ExtensionContext) {

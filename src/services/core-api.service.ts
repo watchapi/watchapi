@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { Collection, CollectionEndpoint } from "../models/collection";
 import { HttpMethod } from "../models/request";
-import { ensureGuestLogin, getOrCreateInstallId } from "./auth.service";
+import { ensureGuestLogin, getOrCreateInstallId } from "../auth/auth.service";
 import { createApiClientFromConfig } from "./trpc.service";
 import { parseHttpRequestDocument } from "../utils/parse-http-request";
 import { normalizeHeaders } from "../utils/normalize-headers";
@@ -143,7 +143,10 @@ export class CoreApiService {
       throw new Error("Unable to parse HTTP request document");
     }
 
-    const candidates = ["apiEndpoint.update", "collection.updateEndpoint"] as const;
+    const candidates = [
+      "apiEndpoint.update",
+      "collection.updateEndpoint",
+    ] as const;
 
     let lastError: unknown = null;
     for (const path of candidates) {

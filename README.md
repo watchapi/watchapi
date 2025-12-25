@@ -1,40 +1,72 @@
-# WatchAPI Client
+# High Level Architecture design
 
-WatchAPI Client is a REST client for testing and managing API endpoints directly from VS Code.
+**WatchAPI Client 2**
+**0.1**
 
-It lets you organize endpoints into collections, send HTTP requests, and work with APIs without leaving your editor.
+**MVP**
+**21/12/2025**
 
-![WatchAPI](./assets/screenshot-preview.png "WatchAPI Client")
+### Overview:
 
-## Features
+Provide VS Code developers ability to manage APIs inside vs code. Ability to upload their current Next.js or Next.js with trpc project into collections and endpoints. And be in Sync with WatchAPI cloud.
 
-- Create and manage API collections
-- Send HTTP requests (GET, POST, PUT, DELETE)
-- View responses inside VS Code
-- Designed to work with WatchAPI workflows
+### Objectives:
 
-## Quick Started
+It allows developers to sync their Next.js project directly from code to APIs dashboard and cloud.
+This docs will explain the high level design of the extension covering main functionalities.
 
-1. Install the extension
-2. Open the WatchAPI activity view
-3. Create a collection and add endpoints
-4. Send requests and inspect responses
+### Table Of Content:
 
-## Privacy stuff
+### Visibility - Activity Bar / Command Palette:
 
-To provide cloud-synced collections, the extension automatically creates a temporary guest account.
+Activity Bar:
+WatchAPI logo of watch
+Command Palette:
 
-- A guest account is created on first use
-- API collections and endpoints are stored securely in the WatchAPI cloud
-- Guest accounts are retained for up to 30 days
-- No personal information is collected beyond technical identifiers needed to operate the service
+- Refresh
+- Login
+- Logout
+- Focus collection view
+- Open dashboard
 
-You can review the full Privacy Policy at https://watchapi.dev/privacy
+### Sidebar
 
-## Need help?
+Title: WatchAPI
+Right side actions:
 
-Something broken? [Open an issue](https://github.com/watchapi/watchapi-client/issues/new) or check out [WatchAPI](https://watchapi.dev).
+- Always first (for visibility): Exclamation mark visible only if 'REST Client' extension not avalible
+- Plus icon: adds collection to the end of the list, but before asks the name.
+- Upload icon: appear only when project type is supported: next-app / next-trpc on click go over endpoints and show modal to submit:
+  - Modal item have method type, api route and file path
+  - On submit it adds this endpoints to user collections collections been grouped.
+- Refresh icon: pulling endpoints from cloud.
+- Always last menu (3 dots):
+  - Login redirect to login guest session. (if not logged in)
+  - Logout clearing token: (if logged in)
 
----
+### Collection section - Tree items
 
-Built by developers who prefer working with APIs directly from their editor.
+Collections are folders and endpoints items, virtual items to make them hidden from disc.
+**Collection:**
+
+- name: CRUD operation name like: auth, endpoints, users.
+- description: number of endpoints: x endpoint/s
+- icon: layers
+- operation icon: Plus to add endpoint
+
+**Endpoints:**
+
+- name: operation name like: Create user, Update endpoints
+- description: method name like: POST, GET
+
+### File editor - .http format
+
+- on read construct endpoint to .http format
+- on save parse .http to endpoint format
+- environments been added to the top on read
+
+### tRPC API client
+
+- crud collections /api/trpc/
+- crud api-endpoints /api/trpc/
+- crud environments /api/trpc/

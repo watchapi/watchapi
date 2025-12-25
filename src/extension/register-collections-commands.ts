@@ -11,7 +11,7 @@ import { buildRequestDocument } from "../documents/request-document";
 import { confirmDelete } from "../ui/confirm-delete";
 import { inferEndpointName } from "../utils/infer-endpoint-name";
 import { promptForRequest } from "../ui/prompt-for-request";
-import { CollectionsProvider } from "../providers/collections-provider";
+import { CollectionsProvider } from "../collections/collections.provider";
 import { VirtualRequestFileSystemProvider } from "../providers/virtual-request-file-system";
 
 type CollectionsService = {

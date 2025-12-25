@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import {
   createApiClientFromConfig,
   getApiClientOptionsFromConfig,
-} from "./trpc.service";
+} from "../services/trpc.service";
 
 const ACCESS_TOKEN_KEY_BASE = "watchapi.accessToken";
 const REFRESH_TOKEN_KEY_BASE = "watchapi.refreshToken";
@@ -17,7 +17,8 @@ function buildTokenKey(base: string) {
   const apiUrl = getApiClientOptionsFromConfig()?.apiUrl;
   if (!apiUrl) return base;
 
-  const normalized = apiUrl.replace(/[^a-z0-9]/gi, "_").toLowerCase() || "default";
+  const normalized =
+    apiUrl.replace(/[^a-z0-9]/gi, "_").toLowerCase() || "default";
   return `${base}:${normalized}`;
 }
 
@@ -33,7 +34,9 @@ function decodeJwt(token: string): JwtPayload | null {
       "base64",
     ).toString("utf8");
     const parsed = JSON.parse(decoded);
-    return typeof parsed === "object" && parsed !== null ? (parsed as JwtPayload) : null;
+    return typeof parsed === "object" && parsed !== null
+      ? (parsed as JwtPayload)
+      : null;
   } catch (error) {
     console.error("Failed to decode JWT payload", error);
     return null;
@@ -78,7 +81,9 @@ async function refreshTokens(
 ): Promise<Tokens | null> {
   try {
     const client = createApiClientFromConfig({ installId });
-    const tokens = await client.mutation<Tokens>("auth.refreshToken", { refreshToken });
+    const tokens = await client.mutation<Tokens>("auth.refreshToken", {
+      refreshToken,
+    });
     await storeTokens(context, tokens);
     return tokens;
   } catch (error) {
@@ -162,7 +167,11 @@ export async function ensureGuestLogin(
   const existing = await getStoredTokens(context);
   if (existing) {
     if (isTokenExpired(existing.accessToken)) {
-      const refreshed = await refreshTokens(context, installId, existing.refreshToken);
+      const refreshed = await refreshTokens(
+        context,
+        installId,
+        existing.refreshToken,
+      );
       if (refreshed) {
         return refreshed;
       }
@@ -181,7 +190,10 @@ export async function ensureGuestLogin(
           return existing;
         }
       } catch (error) {
-        console.warn("WatchAPI token validation failed, reauthenticating", error);
+        console.warn(
+          "WatchAPI token validation failed, reauthenticating",
+          error,
+        );
       }
 
       await clearTokens(context);
@@ -210,7 +222,13 @@ export async function upgradeGuestWithCredentials(
 
   const result = await client.mutation<{
     requiresEmailVerification: boolean;
-    user: { id: string; email: string; name?: string; avatar?: string; role: string };
+    user: {
+      id: string;
+      email: string;
+      name?: string;
+      avatar?: string;
+      role: string;
+    };
     tokens: Tokens;
   }>("auth.upgradeGuest", input);
 
@@ -229,7 +247,13 @@ export async function loginWithCredentials(
   const client = createApiClientFromConfig({ installId });
 
   const result = await client.mutation<{
-    user: { id: string; email: string; name?: string; avatar?: string; role: string };
+    user: {
+      id: string;
+      email: string;
+      name?: string;
+      avatar?: string;
+      role: string;
+    };
     tokens: Tokens;
   }>("auth.login", input);
 

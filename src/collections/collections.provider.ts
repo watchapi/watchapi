@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { Collection } from "../models/collection";
 import { CoreApiService } from "../services/core-api.service";
-import { CollectionTreeItem } from "./collection-tree-item";
-import { EndpointTreeItem } from "./endpoint-tree-item";
+import { CollectionTreeItem } from "../providers/collection-tree-item";
+import { EndpointTreeItem } from "../providers/endpoint-tree-item";
 
 type TreeItemCache = {
   collections: Map<string, CollectionTreeItem>;
@@ -38,7 +38,9 @@ export class CollectionsProvider
     return el;
   }
 
-  getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
+  getChildren(
+    element?: vscode.TreeItem,
+  ): vscode.ProviderResult<vscode.TreeItem[]> {
     return this.getChildrenInternal(element);
   }
 
@@ -72,9 +74,7 @@ export class CollectionsProvider
 
     if (element instanceof CollectionTreeItem) {
       const items = this.ensureTreeItems();
-      return (
-        items.endpointsByCollection.get(element.collection.id) ?? []
-      );
+      return items.endpointsByCollection.get(element.collection.id) ?? [];
     }
 
     return [];
