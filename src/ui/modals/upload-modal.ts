@@ -177,10 +177,21 @@ export class UploadModal {
    */
   private extractRoutePrefix(path: string): string {
     const normalizedPath = path.replace("{{domain}}", "");
+
+    if (normalizedPath.startsWith("/api/trpc/")) {
+      const trpcPath = normalizedPath.slice("/api/trpc/".length);
+
+      const [router] = trpcPath.split(".");
+
+      return router || "default";
+    }
+
     const parts = normalizedPath.split("/").filter(Boolean);
+
     if (parts.length >= 2 && parts[0] === "api") {
       return parts[1];
     }
+
     return parts[0] || "default";
   }
 }
