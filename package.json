@@ -86,8 +86,8 @@
       },
       {
         "command": "watchapi.uploadEndpoints",
-        "title": "WatchAPI: Upload Endpoints",
-        "icon": "$(cloud-upload)"
+        "title": "WatchAPI: Import from Code",
+        "icon": "$(arrow-down)"
       },
       {
         "command": "watchapi.deleteEndpoint",
@@ -108,16 +108,37 @@
         "command": "watchapi.switchOrganization",
         "title": "WatchAPI: Select Organization",
         "icon": "$(organization)"
+      },
+      {
+        "command": "watchapi.findEndpoint",
+        "title": "Search Endpoints",
+        "icon": "$(search)"
+      },
+      {
+        "command": "watchapi.uploadEndpoints",
+        "title": "WatchAPI: Import from Code",
+        "icon": "$(arrow-down)",
+        "when": "watchapi.canUpload"
       }
     ],
     "viewsWelcome": [
       {
         "view": "watchapi.collections",
-        "contents": "No collections yet.\n\n[$(add) New Collection](command:watchapi.addCollection)"
+        "contents": "No collections yet.\n\n[$(arrow-down) Import from Code](command:watchapi.uploadEndpoints)",
+        "when": "watchapi.canUpload"
+      },
+      {
+        "view": "watchapi.collections",
+        "contents": "[$(add) New Collection](command:watchapi.addCollection)"
       }
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "watchapi.findEndpoint",
+          "when": "view == watchapi.collections",
+          "group": "navigation@0"
+        },
         {
           "command": "watchapi.login",
           "when": "view == watchapi.collections && !watchapi.loggedIn",
@@ -221,6 +242,7 @@
   "dependencies": {
     "@trpc/client": "^11.0.0",
     "@vscode/test-cli": "^0.0.12",
+    "ts-morph": "^27.0.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {
