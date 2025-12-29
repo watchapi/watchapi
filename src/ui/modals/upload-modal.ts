@@ -138,6 +138,8 @@ export class UploadModal {
               name: route.name,
               url: route.path,
               method: route.method,
+              headers: route.headers,
+              body: route.body,
               collectionId: collection.id,
               isActive: false,
             });
