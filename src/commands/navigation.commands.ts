@@ -1,6 +1,6 @@
 /**
  * Navigation command handlers
- * Commands: FOCUS, OPEN_DASHBOARD
+ * Commands: FOCUS, OPEN_DASHBOARD, OPEN_SETTINGS
  */
 
 import * as vscode from "vscode";
@@ -21,6 +21,16 @@ export function registerNavigationCommands(
 	context.subscriptions.push(
 		vscode.commands.registerCommand(COMMANDS.OPEN_DASHBOARD, () => {
 			vscode.env.openExternal(vscode.Uri.parse(getConfig().dashboardUrl));
+		}),
+	);
+
+	// Open settings command - Open extension settings
+	context.subscriptions.push(
+		vscode.commands.registerCommand(COMMANDS.OPEN_SETTINGS, () => {
+			vscode.commands.executeCommand(
+				"workbench.action.openSettings",
+				"@ext:watchapi.watchapi-client",
+			);
 		}),
 	);
 }
