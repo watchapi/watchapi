@@ -137,6 +137,8 @@ export interface ParsedRoute {
 	method: HttpMethod;
 	filePath: string;
 	type: 'nextjs-app' | 'nextjs-page' | 'trpc';
+	headers?: Record<string, string>;
+	body?: string;
 }
 
 // Cache types
