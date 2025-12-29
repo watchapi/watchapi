@@ -10,6 +10,7 @@ export const COMMANDS = {
   REFRESH: "watchapi.refresh",
   LOGIN: "watchapi.login",
   LOGOUT: "watchapi.logout",
+  OPEN_SETTINGS: "watchapi.openSettings",
   FOCUS: "watchapi.focus",
   OPEN_DASHBOARD: "watchapi.openDashboard",
   ADD_COLLECTION: "watchapi.addCollection",

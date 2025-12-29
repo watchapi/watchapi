@@ -132,6 +132,7 @@ export function parseHttpFile(
 export function constructHttpFile(
   endpoint: ApiEndpoint,
   environment?: Record<string, string>,
+  options?: { includeAuthorizationHeader?: boolean },
 ): string {
   try {
     logger.debug(`Constructing .http file for endpoint: ${endpoint.id}`);
@@ -159,9 +160,17 @@ export function constructHttpFile(
     let requestLine = `${endpoint.method} ${endpoint.url}`;
     parts.push(requestLine);
 
+    // Prepare headers - include Authorization if setting enabled and not already present
+    const headers = { ...endpoint.headers };
+    const includeAuth = options?.includeAuthorizationHeader ?? true;
+
+    if (includeAuth && !headers.Authorization && !headers.authorization) {
+      headers.Authorization = "";
+    }
+
     // Add headers
-    if (endpoint.headers && Object.keys(endpoint.headers).length > 0) {
-      for (const [key, value] of Object.entries(endpoint.headers)) {
+    if (Object.keys(headers).length > 0) {
+      for (const [key, value] of Object.entries(headers)) {
         parts.push(`${key}: ${value}`);
       }
     }
