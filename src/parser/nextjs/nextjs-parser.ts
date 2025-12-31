@@ -18,6 +18,7 @@ import {
 	isPagesRouterFile,
 	extractRoutePath,
 	collectHttpMethodHandlers,
+	detectExportedMethods,
 	detectPagesRouterHandler,
 	detectPagesRouterMethods,
 	hasMiddleware,
@@ -175,13 +176,19 @@ function parseAppRouterFile(
 
 	// Collect HTTP method handlers
 	const methodHandlers = collectHttpMethodHandlers(sourceFile, debug);
+	const exportedMethods = detectExportedMethods(sourceFile, debug);
+	const methodSet = new Set<HttpMethod>([
+		...methodHandlers.keys(),
+		...exportedMethods,
+	]);
 
 	// Check for middleware
 	const middleware = hasMiddleware(sourceFile);
 	const serverAction = isServerAction(sourceFile);
 
 	// Create handler for each exported method
-	methodHandlers.forEach((handler, method) => {
+	methodSet.forEach((method) => {
+		const handler = methodHandlers.get(method) ?? sourceFile;
 		const analysis = analyzeHandler(handler);
 
 		handlers.push({

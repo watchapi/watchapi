@@ -15,7 +15,7 @@ import {
 import { EndpointsService } from "@/endpoints";
 import { CacheService, SyncService } from "@/sync";
 import { StatusBarManager, UploadModal } from "@/ui";
-import { hasNextJs, hasTRPC } from "@/parser";
+import { hasNextJs, hasTRPC, hasNestJs } from "@/parser";
 import { EndpointsFileSystemProvider } from "./endpoints/endpoints.fs";
 import { openEndpointEditor } from "./endpoints/endpoints.editor";
 import { OrganizationService } from "@/organizations";
@@ -68,7 +68,11 @@ export async function activate(
 
     // Initialize UI components
     const statusBar = new StatusBarManager();
-    const uploadModal = new UploadModal(collectionsService, endpointsService);
+    const uploadModal = new UploadModal(
+      collectionsService,
+      endpointsService,
+      context,
+    );
 
     const fsProvider = new EndpointsFileSystemProvider(endpointsService);
 
@@ -82,6 +86,7 @@ export async function activate(
     const treeProvider = new CollectionsTreeProvider(
       collectionsService,
       endpointsService,
+      context,
     );
 
     // Register tree view
@@ -315,9 +320,13 @@ async function checkHttpClientExtension() {
  * Check and log supported project types
  */
 async function checkProjectType(): Promise<void> {
-  const [hasNext, hasTrpc] = await Promise.all([hasNextJs(), hasTRPC()]);
+  const [hasNext, hasTrpc, hasNest] = await Promise.all([
+    hasNextJs(),
+    hasTRPC(),
+    hasNestJs(),
+  ]);
 
-  const canUpload = hasNext || hasTrpc;
+  const canUpload = hasNext || hasTrpc || hasNest;
 
   await vscode.commands.executeCommand(
     "setContext",
@@ -329,6 +338,7 @@ async function checkProjectType(): Promise<void> {
     const types: string[] = [];
     if (hasNext) types.push("Next.js");
     if (hasTrpc) types.push("tRPC");
+    if (hasNest) types.push("NestJS");
 
     logger.info(`Detected project types: ${types.join(", ")}`);
   } else {

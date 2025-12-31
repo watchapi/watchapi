@@ -14,6 +14,8 @@ import {
 import type { DynamicSegment, RouteDetectionResult, DebugLogger } from './nextjs-types';
 import type { HttpMethod } from '@/shared/constants';
 
+const routePathCache = new Map<string, RouteDetectionResult>();
+
 /**
  * Detect if file is an App Router route file
  */
@@ -38,6 +40,12 @@ export function extractRoutePath(
 	rootDir: string,
 	debug: DebugLogger,
 ): RouteDetectionResult {
+	const cacheKey = `${rootDir}::${filePath}`;
+	const cached = routePathCache.get(cacheKey);
+	if (cached) {
+		return cached;
+	}
+
 	const relativePath = path.relative(rootDir, filePath).replace(/\\/g, '/');
 	let routePath = '';
 	let isAppRouter = false;
@@ -80,12 +88,14 @@ export function extractRoutePath(
 
 	debug(`Extracted route path: ${routePath} (App: ${isAppRouter}, Pages: ${isPagesRouter})`);
 
-	return {
+	const result = {
 		isAppRouter,
 		isPagesRouter,
 		routePath,
 		dynamicSegments,
 	};
+	routePathCache.set(cacheKey, result);
+	return result;
 }
 
 /**
@@ -231,38 +241,69 @@ export function detectPagesRouterHandler(sourceFile: SourceFile, debug: DebugLog
  * Detect HTTP methods used in Pages Router handler
  */
 export function detectPagesRouterMethods(handler: Node, debug: DebugLogger): HttpMethod[] {
-	const methods: HttpMethod[] = [];
-	const handlerText = handler.getText();
+	const methods = new Set<HttpMethod>();
+	const sourceFile = handler.getSourceFile();
+	const reqParamNames = collectReqParamNames(handler);
 
-	// Look for req.method === 'METHOD' or req.method === "METHOD"
-	const methodChecks = handlerText.matchAll(/req\.method\s*===\s*['"](GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)['"]/g);
+	const exportedMethods = detectExportedMethods(sourceFile, debug);
+	exportedMethods.forEach((method) => methods.add(method));
 
-	for (const match of methodChecks) {
-		const method = match[1] as HttpMethod;
-		if (!methods.includes(method)) {
-			debug(`Detected ${method} method in handler`);
-			methods.push(method);
+	handler.forEachDescendant((node) => {
+		if (Node.isBinaryExpression(node)) {
+			const operator = node.getOperatorToken().getKind();
+			if (
+				operator !== SyntaxKind.EqualsEqualsEqualsToken &&
+				operator !== SyntaxKind.EqualsEqualsToken
+			) {
+				return;
+			}
+
+			const left = node.getLeft();
+			const right = node.getRight();
+
+			const leftMethod = extractMethodLiteral(left);
+			const rightMethod = extractMethodLiteral(right);
+
+			if (isReqMethodExpression(left, reqParamNames) && rightMethod) {
+				debug(`Detected ${rightMethod} method in handler`);
+				methods.add(rightMethod);
+				return;
+			}
+
+			if (isReqMethodExpression(right, reqParamNames) && leftMethod) {
+				debug(`Detected ${leftMethod} method in handler`);
+				methods.add(leftMethod);
+			}
 		}
-	}
 
-	// Look for switch cases on req.method
-	const switchCases = handlerText.matchAll(/case\s+['"](GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)['"]/g);
+		if (Node.isSwitchStatement(node)) {
+			const expression = node.getExpression();
+			if (!isReqMethodExpression(expression, reqParamNames)) {
+				return;
+			}
 
-	for (const match of switchCases) {
-		const method = match[1] as HttpMethod;
-		if (!methods.includes(method)) {
-			debug(`Detected ${method} method in switch case`);
-			methods.push(method);
+			node.getCaseBlock().getClauses().forEach((clause) => {
+				if (!Node.isCaseClause(clause)) {
+					return;
+				}
+				const literal = extractMethodLiteral(clause.getExpression());
+				if (literal) {
+					debug(`Detected ${literal} method in switch case`);
+					methods.add(literal);
+				}
+			});
 		}
-	}
+	});
+
+	const detected = Array.from(methods);
 
 	// If no specific methods found, default to GET
-	if (methods.length === 0) {
+	if (detected.length === 0) {
 		debug('No specific methods found, defaulting to GET');
-		methods.push('GET');
+		return ['GET'];
 	}
 
-	return methods;
+	return detected;
 }
 
 /**
@@ -296,6 +337,116 @@ export function normalizeRoutePath(routePath: string): string {
 	}
 
 	return routePath;
+}
+
+export function detectExportedMethods(
+	sourceFile: SourceFile,
+	debug: DebugLogger,
+): HttpMethod[] {
+	const methods = new Set<HttpMethod>();
+
+	sourceFile.getVariableDeclarations().forEach((decl) => {
+		if (decl.getName() !== 'methods') {
+			return;
+		}
+
+		const statement = decl.getVariableStatement();
+		if (!statement?.isExported()) {
+			return;
+		}
+
+		const initializer = decl.getInitializer();
+		const found = extractMethodsFromExpression(initializer, sourceFile);
+		found.forEach((method) => methods.add(method));
+	});
+
+	if (methods.size > 0) {
+		debug(`Detected exported methods array: ${Array.from(methods).join(', ')}`);
+	}
+
+	return Array.from(methods);
+}
+
+function extractMethodsFromExpression(
+	node: Node | undefined,
+	sourceFile: SourceFile,
+): HttpMethod[] {
+	if (!node) {
+		return [];
+	}
+
+	if (Node.isAsExpression(node) || Node.isTypeAssertion(node) || Node.isParenthesizedExpression(node)) {
+		return extractMethodsFromExpression(node.getExpression(), sourceFile);
+	}
+
+	if (Node.isIdentifier(node)) {
+		const declaration = sourceFile.getVariableDeclaration(node.getText());
+		if (declaration) {
+			return extractMethodsFromExpression(declaration.getInitializer(), sourceFile);
+		}
+	}
+
+	if (!Node.isArrayLiteralExpression(node)) {
+		return [];
+	}
+
+	const methods: HttpMethod[] = [];
+	node.getElements().forEach((element) => {
+		const literal = extractMethodLiteral(element);
+		if (literal && !methods.includes(literal)) {
+			methods.push(literal);
+		}
+	});
+
+	return methods;
+}
+
+function extractMethodLiteral(node: Node): HttpMethod | null {
+	if (Node.isStringLiteral(node) || Node.isNoSubstitutionTemplateLiteral(node)) {
+		const value = node.getLiteralValue().toUpperCase();
+		if (APP_ROUTER_METHODS.includes(value as HttpMethod)) {
+			return value as HttpMethod;
+		}
+	}
+
+	return null;
+}
+
+function collectReqParamNames(handler: Node): Set<string> {
+	const names = new Set<string>(['req', 'request']);
+
+	if (
+		Node.isFunctionDeclaration(handler) ||
+		Node.isFunctionExpression(handler) ||
+		Node.isArrowFunction(handler)
+	) {
+		const parameters = handler.getParameters();
+		if (parameters.length > 0) {
+			const first = parameters[0];
+			if (Node.isIdentifier(first.getNameNode())) {
+				names.add(first.getName());
+			}
+		}
+	}
+
+	return names;
+}
+
+function isReqMethodExpression(node: Node, reqParamNames: Set<string>): boolean {
+	if (!Node.isPropertyAccessExpression(node)) {
+		return false;
+	}
+
+	if (node.getName() !== 'method') {
+		return false;
+	}
+
+	const expression = node.getExpression();
+	if (!Node.isIdentifier(expression)) {
+		return false;
+	}
+
+	return reqParamNames.has(expression.getText());
 }
 
 /**
