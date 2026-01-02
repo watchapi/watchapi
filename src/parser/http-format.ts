@@ -12,6 +12,7 @@ import type {
 } from "@/shared/types";
 import type { HttpMethod } from "@/shared/constants";
 import { humanizeRouteName } from "@/endpoints/endpoints.editor";
+import { flatten } from "flat";
 
 /**
  * Parse .http file content to endpoint data
@@ -143,13 +144,23 @@ export function constructHttpFile(
     if (environment?.local) {
       parts.push("### Environment Variables");
 
-      for (const [key, value] of Object.entries(environment.local)) {
+      const flatEnv = flatten(environment.local, {
+        delimiter: ".",
+        safe: true,
+      }) as Record<string, unknown>;
+
+      for (const [key, value] of Object.entries(flatEnv)) {
         if (value !== undefined && value !== null && value !== "") {
-          parts.push(`@${key} = ${value}`);
+          const formatted =
+            typeof value === "string" && value.includes(" ")
+              ? `"${value}"`
+              : value;
+
+          parts.push(`@${key} = ${formatted}`);
         }
       }
 
-      parts.push(""); // Empty line
+      parts.push("");
     }
 
     // Add endpoint name as comment
@@ -165,7 +176,7 @@ export function constructHttpFile(
     const includeAuth = options?.includeAuthorizationHeader ?? true;
 
     if (includeAuth && !headers.Authorization && !headers.authorization) {
-      headers.Authorization = "";
+      headers.Authorization = "Bearer {{authToken}}";
     }
 
     // Add headers
