@@ -142,7 +142,7 @@ export function constructHttpFile(
 
     // Add environment variables section if environment provided
     if (environment?.local) {
-      parts.push("### Environment Variables");
+      parts.push("### Environments – rest-client.env.json");
 
       const flatEnv = flatten(environment.local, {
         delimiter: ".",
@@ -164,10 +164,10 @@ export function constructHttpFile(
     }
 
     // Add endpoint name as comment
-    parts.push(`### ${endpoint.method} ${endpoint.url} - ${endpoint.name}`);
+    parts.push(`### ${endpoint.name}`);
 
     // Add request line
-    let requestLine = `${endpoint.method} ${endpoint.url}`;
+    const requestLine = `${endpoint.method} ${endpoint.url}`;
     parts.push(requestLine);
 
     // Prepare headers - include Authorization if setting enabled and not already present
