@@ -124,11 +124,6 @@
         "icon": "$(search)"
       },
       {
-        "command": "watchapi.warning",
-        "title": "Warning",
-        "icon": "$(warning)"
-      },
-      {
         "command": "watchapi.uploadEndpoints",
         "title": "WatchAPI: Import from Code",
         "icon": "$(arrow-down)",
@@ -152,11 +147,6 @@
     ],
     "menus": {
       "view/title": [
-        {
-          "command": "watchapi.warning",
-          "when": "view == watchapi.collections && watchapi.noRestClient",
-          "group": "navigation@0"
-        },
         {
           "command": "watchapi.findEndpoint",
           "when": "view == watchapi.collections",

@@ -8,6 +8,7 @@ import * as vscode from "vscode";
 import { trpc } from "@/api/trpc-client";
 import { logger } from "@/shared/logger";
 import { NotFoundError, ValidationError } from "@/shared/errors";
+import { ensureEnvFile } from "@/environments";
 import type { LocalStorageService } from "@/storage";
 import type {
   Collection,
@@ -104,21 +105,25 @@ export class CollectionsService {
 
       const isCloud = await this.isCloudMode();
 
+      let collection: Collection;
+
       if (isCloud) {
         logger.debug("Creating collection in cloud", input);
-        const collection = await trpc.createCollection(input);
+        collection = await trpc.createCollection(input);
         logger.info(
           `Created collection in cloud: ${collection.name} (${collection.id})`,
         );
-        return collection;
       } else {
         logger.debug("Creating collection locally", input);
-        const collection = await this.localStorage!.createCollection(input);
+        collection = await this.localStorage!.createCollection(input);
         logger.info(
           `Created collection locally: ${collection.name} (${collection.id})`,
         );
-        return collection;
       }
+
+      await ensureEnvFile({ silent: false });
+
+      return collection;
     } catch (error) {
       logger.error("Failed to create collection", error);
       throw error;
@@ -141,10 +146,7 @@ export class CollectionsService {
         return collection;
       } else {
         logger.debug(`Updating collection locally: ${id}`, input);
-        const collection = await this.localStorage!.updateCollection(
-          id,
-          input,
-        );
+        const collection = await this.localStorage!.updateCollection(id, input);
 
         if (!collection) {
           throw new NotFoundError("Collection", id);

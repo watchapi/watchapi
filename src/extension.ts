@@ -14,8 +14,9 @@ import {
 } from "@/collections";
 import { EndpointsService } from "@/endpoints";
 import { CacheService, SyncService } from "@/sync";
-import { StatusBarManager, UploadModal, WarningService } from "@/ui";
+import { StatusBarManager, UploadModal } from "@/ui";
 import { hasNextJs, hasTRPC, hasNestJs } from "@/parser";
+import { REST_CLIENT } from "@/shared";
 import { EndpointsFileSystemProvider } from "./endpoints/endpoints.fs";
 import { openEndpointEditor } from "./endpoints/endpoints.editor";
 import { OrganizationService } from "@/organizations";
@@ -68,7 +69,6 @@ export async function activate(
 
     // Initialize UI components
     const statusBar = new StatusBarManager();
-    const warningService = new WarningService();
     const uploadModal = new UploadModal(
       collectionsService,
       endpointsService,
@@ -110,6 +110,8 @@ export async function activate(
       if (item instanceof EndpointNode) {
         try {
           await openEndpointEditor(item.endpoint);
+          // Show REST Client recommendation if not installed
+          checkRestClientExtension();
         } catch (error) {
           vscode.window.showErrorMessage(`Failed to open endpoint: ${error}`);
         }
@@ -143,7 +145,6 @@ export async function activate(
       syncService,
       treeProvider,
       uploadModal,
-      warningService,
     );
 
     // Set up event listeners
@@ -156,9 +157,6 @@ export async function activate(
     );
     // Initialize auth
     await authService.initialize();
-
-    // Check for HTTP Client extension
-    await WarningService.checkRestClientExtension();
 
     // Check for supported project types
     await checkProjectType();
@@ -194,7 +192,6 @@ function registerCommands(
   syncService: SyncService,
   treeProvider: CollectionsTreeProvider,
   uploadModal: UploadModal,
-  warningService: WarningService,
 ): void {
   // Register all command modules
   registerAuthCommands(context, authService, syncService, treeProvider);
@@ -210,13 +207,6 @@ function registerCommands(
   registerSyncCommands(context, syncService, treeProvider);
   registerNavigationCommands(context);
   registerUploadCommands(context, uploadModal, treeProvider);
-
-  // Warning command
-  context.subscriptions.push(
-    vscode.commands.registerCommand("watchapi.warning", async () => {
-      await warningService.showRestClientWarning();
-    }),
-  );
 
   // Show status command (kept here as it's a simple placeholder)
   context.subscriptions.push(
@@ -324,6 +314,36 @@ async function checkProjectType(): Promise<void> {
     logger.info(
       "No supported project types detected (upload feature will be disabled)",
     );
+  }
+}
+
+/**
+ * Check if REST Client extension is installed and show info message if not
+ * Only shows once per session to avoid annoying the user
+ */
+let hasShownRestClientInfo = false;
+function checkRestClientExtension(): void {
+  if (hasShownRestClientInfo) {
+    return; // Only show once per session
+  }
+
+  const extension = vscode.extensions.getExtension(REST_CLIENT.EXTENSION_ID);
+  if (!extension) {
+    hasShownRestClientInfo = true;
+    vscode.window
+      .showInformationMessage(
+        `${REST_CLIENT.NAME} is required to run API requests.`,
+        `Install ${REST_CLIENT.NAME}`,
+        "Cancel",
+      )
+      .then((action) => {
+        if (action === `Install ${REST_CLIENT.NAME}`) {
+          vscode.commands.executeCommand(
+            "workbench.extensions.installExtension",
+            REST_CLIENT.EXTENSION_ID,
+          );
+        }
+      });
   }
 }
 
