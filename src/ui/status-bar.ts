@@ -60,11 +60,9 @@ export class StatusBarManager {
       this.statusBarItem.command = "watchapi.showStatus";
       this.statusBarItem.backgroundColor = undefined;
     } else {
-      parts.push("$(database) Local Mode");
+      parts.push("$(database) Local");
       this.statusBarItem.command = "watchapi.login";
-      this.statusBarItem.backgroundColor = new vscode.ThemeColor(
-        "statusBarItem.warningBackground",
-      );
+      this.statusBarItem.backgroundColor = undefined;
     }
 
     // Sync status (only show when authenticated)
@@ -99,7 +97,9 @@ export class StatusBarManager {
 
       // Organization info
       if (this.organizationName) {
-        tooltip.appendMarkdown(`Organization: **${this.organizationName}**\n\n`);
+        tooltip.appendMarkdown(
+          `Organization: **${this.organizationName}**\n\n`,
+        );
       }
 
       // Sync info (only when authenticated)
@@ -116,7 +116,7 @@ export class StatusBarManager {
 
       tooltip.appendMarkdown("\nClick to view status details");
     } else {
-      tooltip.appendMarkdown("**Local Mode** 💾\n\n");
+      tooltip.appendMarkdown("**WatchAPI Local Mode**\n\n");
       tooltip.appendMarkdown("Your data is stored locally on this device\n\n");
       tooltip.appendMarkdown("**Click to sign in** and sync with cloud");
     }
