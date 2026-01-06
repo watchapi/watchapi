@@ -66,6 +66,15 @@ export interface ApiEndpoint {
   pathTemplate: string; // Route pattern from source (e.g., "/api/users/:id")
   requestPath: string; // Actual request URL (e.g., "/api/users/123")
   method: HttpMethod;
+  // Layered schema pattern:
+  // - bodySchema/headersSchema: Code-inferred defaults (updated by sync/pull)
+  // - bodyOverrides/headersOverrides: User edits (never touched by sync)
+  // - At runtime: effective = applyOverrides(schema, overrides)
+  bodySchema?: string;
+  bodyOverrides?: string;
+  headersSchema?: Record<string, string>;
+  headersOverrides?: Record<string, string>;
+  // Deprecated fields (kept for backwards compatibility)
   headers?: Record<string, string>;
   body?: string;
   expectedStatus: number;
@@ -83,6 +92,12 @@ export interface CreateApiEndpointInput {
   pathTemplate: string; // Route pattern from source
   requestPath: string; // Actual request URL
   method: HttpMethod;
+  // New layered fields
+  bodySchema?: string;
+  bodyOverrides?: string;
+  headersSchema?: Record<string, string>;
+  headersOverrides?: Record<string, string>;
+  // Deprecated fields (kept for backwards compatibility)
   headers?: Record<string, string>;
   body?: string;
   expectedStatus?: number;
@@ -97,6 +112,12 @@ export interface UpdateApiEndpointInput {
   pathTemplate?: string; // Route pattern from source
   requestPath?: string; // Actual request URL
   method?: HttpMethod;
+  // New layered fields
+  bodySchema?: string;
+  bodyOverrides?: string;
+  headersSchema?: Record<string, string>;
+  headersOverrides?: Record<string, string>;
+  // Deprecated fields (kept for backwards compatibility)
   headers?: Record<string, string>;
   body?: string;
   expectedStatus?: number;
