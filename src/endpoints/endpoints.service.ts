@@ -98,22 +98,27 @@ export class EndpointsService {
 
   /**
    * Generate stable external ID for pulling endpoints from source
-   * Format: filePath#handlerName or filePath#METHOD
+   * Format: filePath#handlerName or filePath#METHOD#PATH
    *
    * Examples:
-   * - With handler: "src/server/user.ts#user.getById"
-   * - Without handler: "src/app/api/users/route.ts#GET"
+   * - With handler (tRPC): "src/server/user.ts#user.getById"
+   * - Without handler (NestJS/Next.js): "src/controllers/activity.controller.ts#GET#/activities"
+   *
+   * For NestJS/Next.js, we include the path to differentiate endpoints with same method in same file:
+   * - GET /activities → "...#GET#/activities"
+   * - GET /activities/statistics → "...#GET#/activities/statistics"
    */
   generateExternalId(route: ParsedRoute, workspaceRoot: string): string {
     const relativePath = route.filePath.replace(workspaceRoot, "");
 
     if (route.handlerName) {
+      // tRPC routes: handlerName is unique per file
       return `${relativePath}#${route.handlerName}`;
     }
 
-    // Include HTTP method to differentiate multiple methods in same file (Next.js)
-    // e.g., route.ts with GET, POST, DELETE → unique IDs per method
-    return `${relativePath}#${route.method}`;
+    // NestJS/Next.js routes: include path to ensure uniqueness
+    // Multiple GET/POST/etc endpoints can exist in same controller with different paths
+    return `${relativePath}#${route.method}#${route.path}`;
   }
 
   /**
