@@ -16,6 +16,7 @@ import { DB_PATTERNS, VALIDATION_PATTERNS, ERROR_PATTERNS } from './nextjs-const
 import {
 	isAppRouterFile,
 	isPagesRouterFile,
+	isTRPCHandler,
 	extractRoutePath,
 	collectHttpMethodHandlers,
 	detectExportedMethods,
@@ -123,6 +124,12 @@ export async function parseAllNextJsRoutes(): Promise<ParsedRoute[]> {
 		for (const file of sourceFiles) {
 			const filePath = file.getFilePath();
 			debug(`Scanning file ${path.relative(rootDir, filePath)}`);
+
+			// Skip tRPC handler files
+			if (isTRPCHandler(file)) {
+				debug(`Skipping tRPC handler: ${path.relative(rootDir, filePath)}`);
+				continue;
+			}
 
 			if (isAppRouterFile(filePath)) {
 				const handlers = parseAppRouterFile(file, rootDir, debug);
@@ -414,12 +421,31 @@ export async function parseAppRoutes(): Promise<ParsedRoute[]> {
 }
 
 /**
+ * Check if file content contains tRPC handler patterns
+ */
+function isTRPCHandlerContent(text: string): boolean {
+	const hasTRPCImport = /@trpc\/server|fetchRequestHandler|createNextApiHandler/.test(text);
+	if (!hasTRPCImport) {
+		return false;
+	}
+	const hasTRPCHandler = /fetchRequestHandler|createNextApiHandler/.test(text);
+	return hasTRPCHandler;
+}
+
+/**
  * Parse a single App Router route file (basic mode)
  */
 async function parseAppRouteFile(uri: vscode.Uri): Promise<ParsedRoute[]> {
 	try {
 		const content = await vscode.workspace.fs.readFile(uri);
 		const text = content.toString();
+
+		// Skip tRPC handlers
+		if (isTRPCHandlerContent(text)) {
+			logger.debug(`Skipping tRPC handler: ${uri.fsPath}`);
+			return [];
+		}
+
 		const routes: ParsedRoute[] = [];
 
 		// Extract route path from file path
@@ -478,7 +504,7 @@ async function parseAppRouteFile(uri: vscode.Uri): Promise<ParsedRoute[]> {
  */
 function extractAppRoutePath(relativePath: string): string {
 	// Normalize leading src/
-	let normalized = relativePath.replace(/^src\//, '');
+	const normalized = relativePath.replace(/^src\//, '');
 
 	// Remove 'app/' prefix and '/route.ts|js' suffix
 	let routePath = normalized
@@ -529,6 +555,12 @@ async function parsePageRouteFile(uri: vscode.Uri): Promise<ParsedRoute | null> 
 	try {
 		const content = await vscode.workspace.fs.readFile(uri);
 		const text = content.toString();
+
+		// Skip tRPC handlers
+		if (isTRPCHandlerContent(text)) {
+			logger.debug(`Skipping tRPC handler: ${uri.fsPath}`);
+			return null;
+		}
 
 		// Extract route path from file path
 		const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);

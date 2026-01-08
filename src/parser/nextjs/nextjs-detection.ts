@@ -33,6 +33,25 @@ export function isPagesRouterFile(filePath: string): boolean {
 }
 
 /**
+ * Detect if source file is a tRPC handler by analyzing code patterns
+ * This checks for tRPC-specific imports and handler functions
+ */
+export function isTRPCHandler(sourceFile: SourceFile): boolean {
+	const text = sourceFile.getText();
+
+	// Check for tRPC imports
+	const hasTRPCImport = /@trpc\/server|fetchRequestHandler|createNextApiHandler/.test(text);
+	if (!hasTRPCImport) {
+		return false;
+	}
+
+	// Check for tRPC handler patterns
+	const hasTRPCHandler = /fetchRequestHandler|createNextApiHandler/.test(text);
+
+	return hasTRPCHandler;
+}
+
+/**
  * Extract route path from file path
  */
 export function extractRoutePath(
