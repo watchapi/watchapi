@@ -1,5 +1,10 @@
 # WatchAPI - REST Client & API Testing
 
+[![CI](https://github.com/watchapi/watchapi-client/actions/workflows/ci.yml/badge.svg)](https://github.com/watchapi/watchapi-client/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/visual-studio-marketplace/v/watchapi.watchapi-client?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=watchapi.watchapi-client)
+[![Downloads](https://img.shields.io/visual-studio-marketplace/d/watchapi.watchapi-client)](https://marketplace.visualstudio.com/items?itemName=watchapi.watchapi-client)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **An API client that reads your code.** Auto-import endpoints from Next.js, NestJS & tRPC. Test and monitor without leaving VS Code.
 
 ![WatchAPI](./assets/screenshot-endpoint.png "Execute and inspect API requests inside VS Code")
@@ -77,20 +82,38 @@ Works offline by default. Sign in optional (enables team features).
 
 ## Privacy & Data
 
-**Local-First Design:**
+**Local-First & Open Source:**
 
 - All collections stored on your machine by default
 - No telemetry or usage tracking
 - Optional cloud sync (only when signed in)
-- Open source support repo
+- **Open source** under MIT license
+- Community-driven development
 
 Privacy Policy: [https://watchapi.dev/privacy](https://watchapi.dev/privacy)
 
+## Contributing
+
+We welcome contributions! WatchAPI Client is open source and community-driven.
+
+- **Read the [Contributing Guide](CONTRIBUTING.md)** to get started
+- **Report bugs** via [GitHub Issues](https://github.com/watchapi/watchapi-client/issues)
+- **Request features** via [GitHub Discussions](https://github.com/watchapi/watchapi-client/discussions)
+- **Submit PRs** - we review and merge regularly
+- **Review the [Code of Conduct](CODE_OF_CONDUCT.md)** before contributing
+
+See [SECURITY.md](SECURITY.md) for reporting security vulnerabilities.
+
 ## Support
 
-- **Report Issues:** [GitHub Issues](https://github.com/watchapi/watchapi-client-support/issues/new)
+- **Report Issues:** [GitHub Issues](https://github.com/watchapi/watchapi-client/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/watchapi/watchapi-client/discussions)
 - **Documentation:** [docs.watchapi.dev](https://docs.watchapi.dev)
 - **Website:** [watchapi.dev](https://watchapi.dev)
+
+## License
+
+This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
 
 ---
 
