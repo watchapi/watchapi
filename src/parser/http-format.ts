@@ -116,8 +116,8 @@ export function parseHttpFile(
       method,
       pathTemplate: requestPath, // When parsing .http file, use the URL as template initially
       requestPath,
-      headers: Object.keys(headers).length > 0 ? headers : undefined,
-      body: body.trim() || undefined,
+      headersOverrides: Object.keys(headers).length > 0 ? headers : undefined,
+      bodyOverrides: body.trim() || undefined,
     };
 
     logger.debug("Parsed endpoint from .http file", endpoint);
@@ -171,25 +171,28 @@ export function constructHttpFile(
     const requestLine = `${endpoint.method} ${endpoint.requestPath}`;
     parts.push(requestLine);
 
-    // Prepare headers - include Authorization if setting enabled and not already present
-    const headers = { ...endpoint.headers };
+    // Prepare headers - use layered schema pattern
+    // Use headersOverrides if set (user edits), otherwise fall back to headersSchema (code-inferred) or headers (legacy)
+    const effectiveHeaders = { ...(endpoint.headersOverrides ?? endpoint.headersSchema ?? endpoint.headers) };
     const includeAuth = options?.includeAuthorizationHeader ?? true;
 
-    if (includeAuth && !headers.Authorization && !headers.authorization) {
-      headers.Authorization = "Bearer {{authToken}}";
+    if (includeAuth && !effectiveHeaders.Authorization && !effectiveHeaders.authorization) {
+      effectiveHeaders.Authorization = "Bearer {{authToken}}";
     }
 
     // Add headers
-    if (Object.keys(headers).length > 0) {
-      for (const [key, value] of Object.entries(headers)) {
+    if (Object.keys(effectiveHeaders).length > 0) {
+      for (const [key, value] of Object.entries(effectiveHeaders)) {
         parts.push(`${key}: ${value}`);
       }
     }
 
     // Add body if present (for POST, PUT, PATCH)
-    if (endpoint.body && ["POST", "PUT", "PATCH"].includes(endpoint.method)) {
+    // Use bodyOverrides if set (user edits), otherwise fall back to bodySchema (code-inferred)
+    const effectiveBody = endpoint.bodyOverrides ?? endpoint.bodySchema ?? endpoint.body;
+    if (effectiveBody && ["POST", "PUT", "PATCH"].includes(endpoint.method)) {
       parts.push(""); // Empty line before body
-      parts.push(endpoint.body);
+      parts.push(effectiveBody);
     }
 
     const content = parts.join("\n");

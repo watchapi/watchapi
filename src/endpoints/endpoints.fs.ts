@@ -85,8 +85,8 @@ export class EndpointsFileSystemProvider implements vscode.FileSystemProvider {
         pathTemplate: parsed.pathTemplate,
         requestPath: parsed.requestPath,
         method: parsed.method,
-        headers: parsed.headers,
-        body: parsed.body,
+        headersOverrides: parsed.headersOverrides,
+        bodyOverrides: parsed.bodyOverrides,
       });
 
       this.emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
