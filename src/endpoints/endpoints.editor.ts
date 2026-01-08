@@ -25,6 +25,20 @@ export async function openEndpointEditor(endpoint: ApiEndpoint): Promise<void> {
   }
 }
 
+/**
+ * Convert camelCase to Title Case
+ * Examples:
+ * - getAnalytics -> Get Analytics
+ * - checkEndpoint -> Check Endpoint
+ * - sendRequest -> Send Request
+ */
+function humanizeCamelCase(text: string): string {
+  // Insert space before uppercase letters
+  const spaced = text.replace(/([A-Z])/g, " $1");
+  // Capitalize first letter and trim
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1).trim();
+}
+
 export function humanizeRouteName(route: {
   path: string;
   method: string;
@@ -39,12 +53,12 @@ export function humanizeRouteName(route: {
     // auth.login -> ["auth", "login"]
     const parts = procedure.split(".").filter(Boolean);
 
-    const namespace = parts.slice(0, -1).join(" ");
     const actionName = parts.at(-1)!;
 
-    const action = inferActionFromProcedure(actionName);
+    // Convert camelCase to Title Case (e.g., getAnalytics -> Get Analytics)
+    const humanized = humanizeCamelCase(actionName);
 
-    return [action, capitalize(namespace)].filter(Boolean).join(" ").trim();
+    return humanized;
   }
 
   // ---- REST handling -------------------------------------------------
@@ -66,33 +80,6 @@ export function humanizeRouteName(route: {
   const action = actionMap[route.method.toUpperCase()] ?? "Handle";
 
   return `${action} ${capitalize(resource)}`.trim();
-}
-
-function inferActionFromProcedure(name: string): string {
-  const normalized = name.toLowerCase();
-
-  if (normalized.startsWith("get") || normalized.startsWith("fetch"))
-    return "Get";
-
-  if (normalized.startsWith("create") || normalized.startsWith("register"))
-    return "Create";
-
-  if (normalized.startsWith("update") || normalized.startsWith("edit"))
-    return "Update";
-
-  if (normalized.startsWith("delete") || normalized.startsWith("remove"))
-    return "Delete";
-
-  if (
-    normalized.includes("login") ||
-    normalized.includes("auth") ||
-    normalized.includes("verify")
-  )
-    return "Auth";
-
-  if (normalized.includes("refresh")) return "Refresh";
-
-  return capitalize(name);
 }
 
 function capitalize(text: string): string {
