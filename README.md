@@ -16,18 +16,14 @@
 
 ## Why WatchAPI?
 
-**Stop manually recreating API routes by hand.** WatchAPI auto-discovers endpoints directly from your codebase.
+**No need manually recreating APIs** WatchAPI analyzes your code and extracts endpoints directly.
 
 - One click imports all Next.js/NestJS/tRPC routes
 - Test requests inside VS Code (no context switching)
 - Share collections with your team
 - Monitor production uptime and performance
 
-**Free for individuals. Team features available.**
-
 ## Features
-
-### Free Forever (Individual Use)
 
 **Auto-Import from Code** - Skip manual setup. Automatically detect API endpoints from:
 
@@ -43,7 +39,7 @@
 - View response status, headers, and body inline
 - Organize endpoints in collections
 - Full request customization (headers, body, query params)
-- Works 100% offline, no account required
+- Works offline, no account required
 - Local-first storage on your machine
 
 ### Team Features (Cloud)
@@ -79,8 +75,7 @@ Works offline by default. Sign in optional (enables team features).
 | -------------------------- | -------- | ------- | -------------- | ----------- |
 | Auto-Import Next.js/NestJS | ✓        | ✗       | ✗              | ✗           |
 | Native VS Code Extension   | ✓        | ✗       | ✓              | ✓           |
-| GUI + Collections          | ✓        | ✓       | ✓              | ✗           |
-| Team Collaboration         | ✓        | ✓       | ✓              | ✗           |
+| Team Collaboration         | ✓        | ✓       | Paid / Limited | ✗           |
 | Production Monitoring      | ✓        | ✓       | ✗              | ✗           |
 | Free Tier                  | ✓        | Limited | ✓              | ✓           |
 | Works Offline              | ✓        | Limited | ✓              | ✓           |
@@ -99,7 +94,7 @@ Privacy Policy: [https://watchapi.dev/privacy](https://watchapi.dev/privacy)
 
 ## Contributing
 
-We welcome contributions! WatchAPI Client is open source and community-driven.
+Welcome, lets collaborate:
 
 - **Read the [Contributing Guide](CONTRIBUTING.md)** to get started
 - **Report bugs** via [GitHub Issues](https://github.com/watchapi/watchapi-vscode/issues)
@@ -122,4 +117,4 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 
 ---
 
-**Built by developers who test APIs where they write code.**
+**Let your code define the testing workflow**
