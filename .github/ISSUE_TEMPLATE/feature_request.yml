@@ -59,6 +59,12 @@ body:
       description: Add any other context or screenshots about the feature request
       placeholder: Additional information...
 
+  - type: markdown
+    attributes:
+      value: |
+        **Project Vision:**  
+        https://github.com/watchapi/watchapi-vscode/blob/main/docs/vision.md
+
   - type: checkboxes
     id: terms
     attributes:
@@ -66,5 +72,5 @@ body:
       options:
         - label: I have searched existing issues to avoid duplicates
           required: true
-        - label: This feature aligns with the project's goals
+        - label: I have read the Project Vision and this request aligns with it
           required: true
