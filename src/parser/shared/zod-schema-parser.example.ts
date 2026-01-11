@@ -5,12 +5,6 @@
  * in different contexts (tRPC, Next.js, etc.)
  */
 
-import {
-  extractBodyFromSchema,
-  extractQueryParamsFromSchema,
-} from "./zod-schema-parser";
-import type { Node } from "ts-morph";
-
 /**
  * Example 1: Extract body from Next.js API route with Zod validation
  *
