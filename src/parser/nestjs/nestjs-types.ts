@@ -10,6 +10,7 @@ export interface NestJsRouteHandler {
   file: string;
   line: number;
   headers: Record<string, string>;
+  queryParams?: Record<string, string>;
   bodyExample?: string;
 }
 

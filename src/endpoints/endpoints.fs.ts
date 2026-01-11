@@ -86,6 +86,7 @@ export class EndpointsFileSystemProvider implements vscode.FileSystemProvider {
         requestPath: parsed.requestPath,
         method: parsed.method,
         headersOverrides: parsed.headersOverrides,
+        queryOverrides: parsed.queryOverrides,
         bodyOverrides: parsed.bodyOverrides,
       });
 

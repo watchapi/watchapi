@@ -298,12 +298,15 @@ function analyzeHandler(handler: Node): HandlerAnalysis {
 	const hasValidation = VALIDATION_PATTERNS.test(handlerText);
 	const headers = extractHeaders(handlerText);
 
+	const queryParams = extractQueryParams(handlerText);
+
 	return {
 		handlerLines,
 		usesDb,
 		hasErrorHandling,
 		hasValidation,
 		headers,
+		queryParams,
 	};
 }
 
@@ -347,6 +350,54 @@ function extractHeaders(handlerText: string): Record<string, string> {
 }
 
 /**
+ * Extract query parameters from handler code
+ */
+function extractQueryParams(handlerText: string): Record<string, string> | undefined {
+	const queryParams: Record<string, string> = {};
+
+	// Pattern 1: searchParams.get('key') - App Router
+	const searchParamsGetPattern = /searchParams\.get\(['"]([^'"]+)['"]\)/g;
+	let match;
+	while ((match = searchParamsGetPattern.exec(handlerText)) !== null) {
+		queryParams[match[1]] = "";
+	}
+
+	// Pattern 2: req.query.key or context.query.key - Pages Router
+	const reqQueryPattern = /(?:req|context)\.query\.(\w+)/g;
+	while ((match = reqQueryPattern.exec(handlerText)) !== null) {
+		queryParams[match[1]] = "";
+	}
+
+	// Pattern 3: const { key } = searchParams - App Router destructuring
+	const destructuringPattern = /const\s*\{([^}]+)\}\s*=\s*searchParams/g;
+	while ((match = destructuringPattern.exec(handlerText)) !== null) {
+		const keys = match[1].split(',').map(k => k.trim().split(':')[0].trim());
+		keys.forEach(key => {
+			if (key && !key.includes('...')) { // Skip rest parameters
+				queryParams[key] = "";
+			}
+		});
+	}
+
+	// Pattern 4: const { key } = req.query or context.query - Pages Router destructuring
+	const reqDestructuringPattern = /const\s*\{([^}]+)\}\s*=\s*(?:req|context)\.query/g;
+	while ((match = reqDestructuringPattern.exec(handlerText)) !== null) {
+		const keys = match[1].split(',').map(k => k.trim().split(':')[0].trim());
+		keys.forEach(key => {
+			if (key && !key.includes('...')) {
+				queryParams[key] = "";
+			}
+		});
+	}
+
+	if (Object.keys(queryParams).length === 0) {
+		return undefined;
+	}
+
+	return queryParams;
+}
+
+/**
  * Convert NextJsRouteHandler to ParsedRoute
  */
 function convertToRoutes(
@@ -365,6 +416,7 @@ function convertToRoutes(
 			filePath: path.join(rootDir, handler.file),
 			type,
 			headers: Object.keys(handler.headers).length > 0 ? handler.headers : undefined,
+			query: handler.queryParams,
 		};
 	});
 }

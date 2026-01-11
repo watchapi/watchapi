@@ -67,13 +67,15 @@ export interface ApiEndpoint {
   requestPath: string; // Actual request URL (e.g., "/api/users/123")
   method: HttpMethod;
   // Layered schema pattern:
-  // - bodySchema/headersSchema: Code-inferred defaults (updated by sync/pull)
-  // - bodyOverrides/headersOverrides: User edits (never touched by sync)
+  // - bodySchema/headersSchema/querySchema: Code-inferred defaults (updated by sync/pull)
+  // - bodyOverrides/headersOverrides/queryOverrides: User edits (never touched by sync)
   // - At runtime: effective = applyOverrides(schema, overrides)
   bodySchema?: string;
   bodyOverrides?: string;
   headersSchema?: Record<string, string>;
   headersOverrides?: Record<string, string>;
+  querySchema?: Record<string, string>;
+  queryOverrides?: Record<string, string>;
   // Deprecated fields (kept for backwards compatibility)
   headers?: Record<string, string>;
   body?: string;
@@ -97,6 +99,8 @@ export interface CreateApiEndpointInput {
   bodyOverrides?: string;
   headersSchema?: Record<string, string>;
   headersOverrides?: Record<string, string>;
+  querySchema?: Record<string, string>;
+  queryOverrides?: Record<string, string>;
   // Deprecated fields (kept for backwards compatibility)
   headers?: Record<string, string>;
   body?: string;
@@ -117,6 +121,8 @@ export interface UpdateApiEndpointInput {
   bodyOverrides?: string;
   headersSchema?: Record<string, string>;
   headersOverrides?: Record<string, string>;
+  querySchema?: Record<string, string>;
+  queryOverrides?: Record<string, string>;
   // Deprecated fields (kept for backwards compatibility)
   headers?: Record<string, string>;
   body?: string;
@@ -165,6 +171,7 @@ export interface ParsedRoute {
   handlerName?: string; // For generating stable externalId
   type: "nextjs-app" | "nextjs-page" | "trpc" | "nestjs";
   headers?: Record<string, string>;
+  query?: Record<string, string>;
   body?: string;
 }
 

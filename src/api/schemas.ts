@@ -48,6 +48,8 @@ export const createApiEndpointSchema = z.object({
 	bodyOverrides: z.string().trim().optional(),
 	headersSchema: z.record(z.string(), z.string()).optional(),
 	headersOverrides: z.record(z.string(), z.string()).optional(),
+	querySchema: z.record(z.string(), z.string()).optional(),
+	queryOverrides: z.record(z.string(), z.string()).optional(),
 	// Legacy fields (kept for backwards compatibility)
 	headers: z.record(z.string(), z.string()).optional(),
 	body: z.string().trim().optional(),
@@ -77,6 +79,8 @@ export const updateApiEndpointSchema = z.object({
 	bodyOverrides: z.string().trim().optional(),
 	headersSchema: z.record(z.string(), z.string()).optional(),
 	headersOverrides: z.record(z.string(), z.string()).optional(),
+	querySchema: z.record(z.string(), z.string()).optional(),
+	queryOverrides: z.record(z.string(), z.string()).optional(),
 	// Legacy fields (kept for backwards compatibility)
 	headers: z.record(z.string(), z.string()).optional(),
 	body: z.string().trim().optional(),

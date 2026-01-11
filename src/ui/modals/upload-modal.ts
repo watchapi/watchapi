@@ -288,6 +288,7 @@ export class UploadModal {
       name: route.name,
       bodySchema: route.body, // Code-inferred body schema
       headersSchema: route.headers, // Code-inferred headers schema
+      querySchema: route.query, // Code-inferred query schema
     };
 
     for (const field of fields) {
@@ -315,8 +316,9 @@ export class UploadModal {
       // Initialize schema from code
       bodySchema: route.body,
       headersSchema: route.headers,
+      querySchema: route.query,
       collectionId,
-      ...defaults, // Includes bodyOverrides: null, headersOverrides: null
+      ...defaults, // Includes bodyOverrides: null, headersOverrides: null, queryOverrides: null
     };
   }
 

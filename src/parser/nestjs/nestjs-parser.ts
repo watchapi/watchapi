@@ -27,6 +27,7 @@ import {
   NESTJS_CONTROLLER_DECORATOR,
   NESTJS_HEADER_DECORATOR,
   NESTJS_METHOD_DECORATORS,
+  NESTJS_QUERY_DECORATOR,
 } from "./nestjs-constants";
 import type { DebugLogger, NestJsRouteHandler } from "./nestjs-types";
 
@@ -175,6 +176,7 @@ function parseControllerFile(
       const methodVersions = extractMethodVersions(method);
       const methodHeaders = extractHeadersFromMethod(method);
       const bodyExample = extractBodyExample(method, debug);
+      const queryParams = extractQueryExample(method, debug);
 
       for (const routeDecorator of routeDecorators) {
         const decoratorPaths = extractDecoratorPaths(routeDecorator.decorator);
@@ -207,6 +209,7 @@ function parseControllerFile(
                   file: path.relative(rootDir, sourceFile.getFilePath()),
                   line: method.getStartLineNumber(),
                   headers: finalHeaders,
+                  queryParams: queryParams,
                   bodyExample: effectiveBody,
                 });
 
@@ -452,6 +455,93 @@ function extractBodyExample(
   return bodyExample;
 }
 
+function extractQueryExample(
+  method: MethodDeclaration,
+  debug: DebugLogger,
+): Record<string, string> | undefined {
+  const queryParams = method.getParameters().flatMap((param) => {
+    const decorator = param.getDecorator(NESTJS_QUERY_DECORATOR);
+    if (!decorator) {
+      return [];
+    }
+    return [{ param, decorator }];
+  }) as Array<{ param: ParameterDeclaration; decorator: Decorator }>;
+
+  if (queryParams.length === 0) {
+    return undefined;
+  }
+
+  const queryObject: Record<string, string> = {};
+
+  for (const entry of queryParams) {
+    const paramType = entry.param.getType();
+    const example = typeToExample(paramType, entry.param, 0, new Set());
+    const decoratorArg = entry.decorator.getCallExpression()?.getArguments()[0];
+    const queryKey = decoratorArg ? resolveStringLiteral(decoratorArg) : undefined;
+
+    if (queryKey) {
+      // Single query parameter with a specific key
+      const serialized = serializeQueryValue(example);
+      if (serialized !== "") {
+        queryObject[queryKey] = serialized;
+      }
+      continue;
+    }
+
+    // No key means entire query object (DTO)
+    if (example && typeof example === "object" && !Array.isArray(example)) {
+      // Flatten object properties as query params
+      for (const [key, value] of Object.entries(example)) {
+        const serialized = serializeQueryValue(value);
+        if (serialized !== "") {
+          queryObject[key] = serialized;
+        }
+      }
+    }
+  }
+
+  if (Object.keys(queryObject).length === 0) {
+    debug("No query parameters found");
+    return undefined;
+  }
+
+  return queryObject;
+}
+
+function serializeQueryValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (Array.isArray(value)) {
+    // Empty arrays become empty string
+    if (value.length === 0) {
+      return "";
+    }
+    return value.map(serializeQueryValue).join(",");
+  }
+
+  if (typeof value === "object") {
+    // Empty objects should return empty string (query params should be primitives)
+    if (Object.keys(value).length === 0) {
+      return "";
+    }
+    // For non-empty objects, don't serialize them - query params should be primitives
+    // Just return empty string to avoid %7B%7D encoding
+    return "";
+  }
+
+  return String(value);
+}
+
 function typeToExample(
   type: Type,
   location: Node,
@@ -568,6 +658,7 @@ function convertToRoutes(
     type: "nestjs",
     headers:
       Object.keys(handler.headers).length > 0 ? handler.headers : undefined,
+    query: handler.queryParams,
     body: handler.bodyExample,
   }));
 }

@@ -7,6 +7,7 @@ import type { HttpMethod } from "@/shared/constants";
 
 export const NESTJS_CONTROLLER_DECORATOR = "Controller";
 export const NESTJS_BODY_DECORATOR = "Body";
+export const NESTJS_QUERY_DECORATOR = "Query";
 export const NESTJS_HEADER_DECORATOR = "Header";
 
 export const NESTJS_METHOD_DECORATORS: Record<

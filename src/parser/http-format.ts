@@ -28,9 +28,12 @@ export function parseHttpFile(
     let requestPath = "";
     let name = "";
     const headers: Record<string, string> = {};
+    const queryParams: Record<string, string> = {};
     let body = "";
     let inBody = false;
     let inHeaders = false;
+    let collectingUrl = false;
+    let urlLines: string[] = [];
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
@@ -46,7 +49,7 @@ export function parseHttpFile(
       }
 
       // Skip regular comments
-      if (line.startsWith("#") && !line.startsWith("###")) {
+      if (line.startsWith("#") && !line.startsWith("//")) {
         continue;
       }
 
@@ -54,9 +57,9 @@ export function parseHttpFile(
         continue;
       }
 
-      // Extract name from ### comment (format: ### METHOD path - Name)
-      if (line.startsWith("###")) {
-        const commentContent = line.replace(/^###\s*/, "").trim();
+      // Extract name from // comment (format: // METHOD path - Name)
+      if (line.startsWith("//")) {
+        const commentContent = line.replace(/^\/\/\s*/, "").trim();
 
         // Try to extract name from format: "METHOD path - Name"
         // The name is everything after the last " - "
@@ -81,11 +84,47 @@ export function parseHttpFile(
         !inBody &&
         line.match(/^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+/i)
       ) {
-        const parts = line.split(/\s+/);
-        method = parts[0].toUpperCase() as HttpMethod;
-        requestPath = parts[1] || "";
-        inHeaders = true;
+        const [, rawUrl = ""] = line.split(/\s+/, 2);
+
+        method = line.split(/\s+/)[0].toUpperCase() as HttpMethod;
+        urlLines = [rawUrl];
+        collectingUrl = true;
         continue;
+      }
+
+      // Collect multiline URL (until headers start)
+      if (collectingUrl) {
+        // Headers start → stop URL collection
+        if (/^[A-Za-z-]+:\s*/.test(line)) {
+          collectingUrl = false;
+          inHeaders = true;
+
+          const fullUrl = urlLines
+            .join("")
+            .replace(/\s+/g, "") // remove line breaks + indentation
+            .trim();
+
+          // Extract query params from URL
+          const [basePath, queryString] = fullUrl.split("?");
+          requestPath = basePath;
+
+          if (queryString) {
+            // Parse query string into params object
+            queryString.split("&").forEach((param) => {
+              const [key, value] = param.split("=");
+              if (key) {
+                queryParams[decodeURIComponent(key)] = value
+                  ? decodeURIComponent(value)
+                  : "";
+              }
+            });
+          }
+
+          // fall through to header parsing
+        } else {
+          urlLines.push(line.trim());
+          continue;
+        }
       }
 
       // Parse headers
@@ -117,6 +156,8 @@ export function parseHttpFile(
       pathTemplate: requestPath, // When parsing .http file, use the URL as template initially
       requestPath,
       headersOverrides: Object.keys(headers).length > 0 ? headers : undefined,
+      queryOverrides:
+        Object.keys(queryParams).length > 0 ? queryParams : undefined,
       bodyOverrides: body.trim() || undefined,
     };
 
@@ -143,7 +184,7 @@ export function constructHttpFile(
 
     // Add environment variables section if environment provided
     if (environment?.local) {
-      parts.push("### Environments – rest-client.env.json");
+      parts.push("// Environments – rest-client.env.json");
 
       const flatEnv = flatten(environment.local, {
         delimiter: ".",
@@ -165,18 +206,46 @@ export function constructHttpFile(
     }
 
     // Add endpoint name as comment
-    parts.push(`### ${endpoint.name}`);
+    parts.push(`// ${endpoint.name}`);
 
-    // Add request line (use requestPath - the actual URL to call)
-    const requestLine = `${endpoint.method} ${endpoint.requestPath}`;
+    // Prepare query params - use layered schema pattern
+    // Use queryOverrides if set (user edits), otherwise fall back to querySchema (code-inferred)
+    const effectiveQuery = {
+      ...(endpoint.querySchema ?? {}),
+      ...(endpoint.queryOverrides ?? {}),
+    };
+
+    // Build full URL with query params
+    let fullUrl = endpoint.requestPath;
+    if (Object.keys(effectiveQuery).length > 0) {
+      const queryString = Object.entries(effectiveQuery)
+        .map(
+          ([key, value]) =>
+            `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+        )
+        .join("&");
+      fullUrl = `${endpoint.requestPath}?${queryString}`;
+    }
+
+    // Add request line
+    const formattedUrl = formatUrlMultiline(fullUrl);
+    const requestLine = `${endpoint.method} ${formattedUrl}`;
+
     parts.push(requestLine);
-
     // Prepare headers - use layered schema pattern
     // Use headersOverrides if set (user edits), otherwise fall back to headersSchema (code-inferred) or headers (legacy)
-    const effectiveHeaders = { ...(endpoint.headersOverrides ?? endpoint.headersSchema ?? endpoint.headers) };
+    const effectiveHeaders = {
+      ...(endpoint.headersOverrides ??
+        endpoint.headersSchema ??
+        endpoint.headers),
+    };
     const includeAuth = options?.includeAuthorizationHeader ?? true;
 
-    if (includeAuth && !effectiveHeaders.Authorization && !effectiveHeaders.authorization) {
+    if (
+      includeAuth &&
+      !effectiveHeaders.Authorization &&
+      !effectiveHeaders.authorization
+    ) {
       effectiveHeaders.Authorization = "Bearer {{authToken}}";
     }
 
@@ -189,7 +258,8 @@ export function constructHttpFile(
 
     // Add body if present (for POST, PUT, PATCH)
     // Use bodyOverrides if set (user edits), otherwise fall back to bodySchema (code-inferred)
-    const effectiveBody = endpoint.bodyOverrides ?? endpoint.bodySchema ?? endpoint.body;
+    const effectiveBody =
+      endpoint.bodyOverrides ?? endpoint.bodySchema ?? endpoint.body;
     if (effectiveBody && ["POST", "PUT", "PATCH"].includes(endpoint.method)) {
       parts.push(""); // Empty line before body
       parts.push(effectiveBody);
@@ -242,4 +312,16 @@ export function extractVariableReferences(text: string): string[] {
   }
 
   return [...new Set(matches)]; // Remove duplicates
+}
+
+function formatUrlMultiline(url: string): string {
+  const [base, query] = url.split("?", 2);
+
+  if (!query) return url;
+
+  const params = query.split("&");
+
+  return [base, ...params.map((p, i) => `    ${i === 0 ? "?" : "&"}${p}`)].join(
+    "\n",
+  );
 }
