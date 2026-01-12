@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "next --port 3010",
-    "build": "next build",
+    "build": "next build && pnpm postbuild",
+    "postbuild": "find out -name 'index.txt' -type f -delete && echo 'Removed RSC payload files'",
     "start": "next start"
   },
   "keywords": [],
