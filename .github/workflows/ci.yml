@@ -13,6 +13,7 @@ jobs:
     outputs:
       vscode: ${{ steps.filter.outputs.vscode }}
       cli: ${{ steps.filter.outputs.cli }}
+      docs: ${{ steps.filter.outputs.docs }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -25,6 +26,10 @@ jobs:
               - 'pnpm-workspace.yaml'
             cli:
               - 'packages/cli/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+            docs:
+              - 'apps/docs/**'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
 
@@ -128,3 +133,40 @@ jobs:
         with:
           name: watchapi-vscode-${{ github.sha }}.vsix
           path: 'packages/vscode-extension/*.vsix'
+
+  # Deploy Docs to Cloudflare Pages
+  deploy-docs:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.docs == 'true' && github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build docs
+        run: pnpm --filter docs run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: watchapi-docs
+          directory: apps/docs/out
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
