@@ -1,0 +1,29 @@
+# Monitoring
+
+WatchAPI runs HTTP checks at a fixed interval, records every result, and surfaces uptime and latency trends.
+
+## How Checks Run
+
+- Default interval: 1 minute. You can raise it per endpoint to reduce load.
+- Execution: standard HTTP requests with optional headers/body you provide.
+- Success rules: 2xx by default; customize status ranges per endpoint.
+- Retry: a single fast retry is attempted before marking a failure.
+
+## What We Store
+
+- Status code and response time for each check.
+- Failure reason (timeout, DNS, network, or non-success status).
+- Timestamps for charting uptime and latency.
+
+## Dashboards
+
+- **Overview:** current up/down state and recent incidents.
+- **Endpoint detail:** full check history with status/latency charts.
+- **Collections:** grouped rollups by product or environment.
+
+## Tuning Tips
+
+- Use shorter intervals for critical health checks; increase for low-traffic
+  services to avoid noise.
+- Add auth headers or request bodies when your endpoint requires them.
+- Pair checks with alert rules so incidents reach the right channel quickly.

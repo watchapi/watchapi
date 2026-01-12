@@ -1,0 +1,34 @@
+# Alerts
+
+Stay ahead of incidents with flexible notification channels and rules.
+
+## Channels
+
+- Webhook — POST JSON to your systems.
+- Slack — deliver to a channel via incoming webhook.
+- Discord — notify a server channel.
+- Email (Coming soon) — send to one or many recipients.
+
+Add channels in Alerts → Notification Channels. You can attach multiple channels
+to the same rule.
+
+## Rules
+
+1. Choose the endpoint or collection to watch.
+2. Select the trigger:
+   - Consecutive failures
+   - Latency above a threshold
+3. Pick one or more channels and save.
+
+## Noise Control
+
+- Built-in throttling prevents duplicate alerts during prolonged outages.
+- Alerts show up in Alerts → Activity so you can review what fired and why.
+
+## Best Practices
+
+- Send critical services to both Slack/Discord and email.
+- Use higher latency thresholds for batch endpoints; keep tighter thresholds for
+  synchronous APIs.
+- Pair alerts with distinct channels per environment (e.g., staging vs.
+  production).

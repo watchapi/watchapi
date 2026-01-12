@@ -1,0 +1,84 @@
+# Installation
+
+WatchAPI Client is distributed as a **Visual Studio Code extension**.
+
+You can install it directly from the VS Code Marketplace in a few seconds.
+
+---
+
+## Install from VS Code Marketplace
+
+1. Open **Visual Studio Code**
+2. Go to the **Extensions** view
+   (`Ctrl + Shift + X` on Windows/Linux, `Cmd + Shift + X` on macOS)
+3. Search for **WatchAPI Client**
+4. Click **Install**
+
+Once installed, the extension is available immediately — no restart required.
+
+---
+
+## Install from Open VSX
+
+WatchAPI Client is also published on **Open VSX**, which is used by editors such as VSCodium and other VS Code–compatible distributions.
+
+You can install it in one of the following ways:
+
+### Option 1: Install via Extensions View
+
+1. Open your editor
+2. Open the **Extensions** view
+3. Search for **WatchAPI Client**
+4. Make sure the source is **Open VSX**
+5. Click **Install**
+
+### Option 2: Install from Website
+
+1. Visit
+   [https://open-vsx.org/extension/watchapi/watchapi-client](https://open-vsx.org/extension/watchapi/watchapi-client)
+2. Download the `.vsix` file
+3. In your editor, open the Command Palette
+   (`Cmd + Shift + P` / `Ctrl + Shift + P`)
+4. Select **Install from VSIX**
+5. Choose the downloaded file
+
+---
+
+## Requirements
+
+Before importing endpoints, make sure your project meets the following:
+
+- **Visual Studio Code** `v1.90.0` or newer
+- A **TypeScript-based project**
+- One of the supported API patterns:
+
+  - Next.js route handlers
+  - tRPC routers
+
+No additional configuration is required for basic usage.
+
+---
+
+## Permissions & Safety
+
+WatchAPI Client runs entirely **inside your editor**.
+
+- It reads your local source files
+- It does not modify your code
+- It does not overwrite existing requests
+- No endpoints or payloads are sent externally by default
+
+Imports are non-destructive and safe to re-run.
+
+---
+
+## Verify Installation
+
+After installation:
+
+1. Open a supported project
+2. Open the Command Palette
+   (`Cmd + Shift + P` / `Ctrl + Shift + P`)
+3. Run **WatchAPI: Import from Code**
+
+If the command appears, the extension is installed correctly.

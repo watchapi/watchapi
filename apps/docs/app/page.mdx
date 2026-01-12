@@ -1,0 +1,52 @@
+# Welcome to WatchAPI Client
+
+**WatchAPI Client** is a VS Code–native API client that **imports API endpoints from your codebase** and turns them into structured, executable collections.
+
+It reads your actual source code — not OpenAPI files — so the requests you work with always reflect how your API is really defined.
+
+---
+
+## What WatchAPI Client Does
+
+WatchAPI Client helps you:
+
+- Import REST endpoints directly from your code
+- Import tRPC procedures from routers
+- Organize endpoints into readable collections
+- Execute requests without leaving VS Code
+- Keep manual edits intact between imports
+
+Each import only **adds new endpoints**.
+Existing requests are never modified or removed.
+
+---
+
+## Designed for Code-First APIs
+
+WatchAPI Client is built for modern TypeScript projects where **code is the source of truth**.
+
+By importing endpoints directly from handlers and routers, it avoids duplicated definitions and reduces drift between code and testing tools.
+
+---
+
+## Supported Technologies
+
+WatchAPI Client currently supports:
+
+- **Next.js** app and pages route handlers
+- **NestJS**
+- **tRPC**
+
+Support expands carefully to maintain correctness.
+
+---
+
+## What This Documentation Covers
+
+In these docs, you’ll learn how to:
+
+- Install WatchAPI Client
+- Import endpoints from your project
+- Re-run imports safely
+- Work with imported collections
+- Execute and inspect requests

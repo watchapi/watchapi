@@ -1,0 +1,57 @@
+# Getting Started
+
+Spin up your WatchAPI workspace and start monitoring.
+
+## Create Your Workspace
+
+1. Sign up at `/signup`.
+2. Invite teammates from Settings → Members.
+3. Generate an API token in Profile → API Tokens (prefix `wai_`) for CLI or
+   automation.
+
+## Add Your First Endpoint
+
+1. Go to Collections → Endpoints.
+2. Click **New Endpoint** and enter:
+   - URL and HTTP method
+   - Expected interval (defaults to 1 minute)
+   - Optional: headers, body, success status range
+3. Save. WatchAPI schedules health checks automatically.
+
+## Set Up Alerts
+
+1. Open Alerts → Notification Channels and add webhook, Slack, or
+   Discord.
+2. Create an alert rule for the endpoint:
+   - Trigger on failures or latency above a threshold
+   - Pick one or more channels
+3. Alerts are throttled to prevent noise; review history in Alerts → Activity.
+
+## View Results
+
+- Dashboard: current uptime, response times, and recent failures.
+- Endpoint detail: per-check history with status and latency.
+- Collections: rollups by service or environment.
+
+## Use The CLI (optional)
+
+Install globally:
+
+```bash
+npm install -g @watchapi/cli
+```
+
+Login to your account:
+
+```bash
+watchapi login --api-token wai_your_token_here
+```
+
+Sync your APIs:
+
+```bash
+watchapi sync --domain https://api.example.com --prefix api/trpc
+```
+
+CLI commands appear in the in-app reference under Help → CLI. After syncing,
+your definitions show up in the dashboard alongside manually added checks.

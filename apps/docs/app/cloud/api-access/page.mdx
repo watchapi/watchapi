@@ -1,0 +1,44 @@
+# API & CLI Access
+
+Use tokens to automate WatchAPI from CI or your local machine.
+
+## API Tokens
+
+- Create tokens in Profile → API Tokens.
+- Tokens start with `wai_` and can be revoked at any time.
+- Keep tokens secret; rotate if you suspect exposure.
+
+## CLI
+
+Install the CLI globally:
+
+```bash
+npm install -g @watchapi/cli
+```
+
+Authenticate by exporting your token:
+
+```bash
+export WATCHAPI_TOKEN=wai_your_token_here
+```
+
+### Common Commands
+
+- Sync tRPC routes:
+
+  ```bash
+  watchapi sync --domain https://api.example.com --prefix api/trpc
+  ```
+
+- Sync OpenAPI definitions:
+
+  ```bash
+  watchapi sync --domain https://api.example.com --openapi /openapi.json
+  ```
+
+CLI help is also available via `watchapi --help`.
+
+## Rate Limits
+
+- API calls include lightweight rate limiting tied to your plan.
+- If you hit limits, wait briefly or upgrade your plan to raise the ceiling.
