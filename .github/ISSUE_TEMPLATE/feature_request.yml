@@ -63,7 +63,7 @@ body:
     attributes:
       value: |
         **Project Vision:**  
-        https://github.com/watchapi/watchapi-vscode/blob/main/docs/vision.md
+        https://github.com/watchapi/watchapi/blob/main/docs/vision.md
 
   - type: checkboxes
     id: terms

@@ -1,10 +1,10 @@
 # WatchAPI - REST Client & API Testing
 
-[![CI](https://github.com/watchapi/watchapi-vscode/actions/workflows/ci.yml/badge.svg)](https://github.com/watchapi/watchapi-vscode/actions/workflows/ci.yml)
+[![CI](https://github.com/watchapi/watchapi/actions/workflows/ci.yml/badge.svg)](https://github.com/watchapi/watchapi/actions/workflows/ci.yml)
 [![Open VSX Version](https://img.shields.io/open-vsx/v/watchapi/watchapi-client)](https://open-vsx.org/extension/watchapi/watchapi-client)
 [![Open VSX Downloads](https://img.shields.io/open-vsx/dt/watchapi/watchapi-client)](https://open-vsx.org/extension/watchapi/watchapi-client)
 ![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen)
-![Last Commit](https://img.shields.io/github/last-commit/watchapi/watchapi-vscode)
+![Last Commit](https://img.shields.io/github/last-commit/watchapi/watchapi)
 <a href="https://discord.gg/5bANxHbfNx">
 <img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Discord Chat" />
 </a>
@@ -18,46 +18,46 @@
 
 **No need manually recreating APIs** WatchAPI analyzes your code and extracts endpoints directly.
 
-- One click imports all Next.js/NestJS/tRPC routes
-- Test requests inside VS Code (no context switching)
-- Share collections with your team
-- Monitor production uptime and performance
+-   One click imports all Next.js/NestJS/tRPC routes
+-   Test requests inside VS Code (no context switching)
+-   Share collections with your team
+-   Monitor production uptime and performance
 
 ## Features
 
 **Auto-Import from Code** - Skip manual setup. Automatically detect API endpoints from:
 
-- **Next.js** - App Router & Pages Router routes
-- **NestJS** - Controllers and decorators
-- **tRPC** - Router definitions
+-   **Next.js** - App Router & Pages Router routes
+-   **NestJS** - Controllers and decorators
+-   **tRPC** - Router definitions
 
 ![WatchAPI](./assets/readme/execute-request.gif "Execute and inspect API requests inside VS Code")
 
 **Full REST Client**
 
-- Execute HTTP requests
-- View response status, headers, and body inline
-- Organize endpoints in collections
-- Full request customization (headers, body, query params)
-- Works offline, no account required
-- Local-first storage on your machine
+-   Execute HTTP requests
+-   View response status, headers, and body inline
+-   Organize endpoints in collections
+-   Full request customization (headers, body, query params)
+-   Works offline, no account required
+-   Local-first storage on your machine
 
 ### Team Features (Cloud)
 
 **Collaboration**
 
-- Cloud sync across devices
-- Share collections with teammates
-- Real-time updates
-- Team workspaces
+-   Cloud sync across devices
+-   Share collections with teammates
+-   Real-time updates
+-   Team workspaces
 
 **Monitoring & Alerts**
 
-- Production endpoint health checks
-- Uptime tracking and dashboards
-- Response time analytics
-- Slack/Discord/email notifications
-- Custom alert rules
+-   Production endpoint health checks
+-   Uptime tracking and dashboards
+-   Response time analytics
+-   Slack/Discord/email notifications
+-   Custom alert rules
 
 ## Quick Start
 
@@ -84,10 +84,10 @@ Works locally by default. Sign in optional (enables team features).
 
 **Local-First & Open Source:**
 
-- All collections stored on your machine by default
-- No telemetry or usage tracking
-- Optional cloud sync (only when signed in)
-- **Open source** under MIT license
+-   All collections stored on your machine by default
+-   No telemetry or usage tracking
+-   Optional cloud sync (only when signed in)
+-   **Open source** under MIT license
 
 Privacy Policy: [https://watchapi.dev/privacy](https://watchapi.dev/privacy)
 
@@ -95,20 +95,20 @@ Privacy Policy: [https://watchapi.dev/privacy](https://watchapi.dev/privacy)
 
 Welcome, lets collaborate:
 
-- **Read the [Contributing Guide](CONTRIBUTING.md)** to get started
-- **Report bugs** via [GitHub Issues](https://github.com/watchapi/watchapi-vscode/issues)
-- **Request features** via [GitHub Discussions](https://github.com/watchapi/watchapi-vscode/discussions)
-- **Submit PRs** - we review and merge regularly
-- **Review the [Code of Conduct](CODE_OF_CONDUCT.md)** before contributing
+-   **Read the [Contributing Guide](CONTRIBUTING.md)** to get started
+-   **Report bugs** via [GitHub Issues](https://github.com/watchapi/watchapi/issues)
+-   **Request features** via [GitHub Discussions](https://github.com/watchapi/watchapi/discussions)
+-   **Submit PRs** - we review and merge regularly
+-   **Review the [Code of Conduct](CODE_OF_CONDUCT.md)** before contributing
 
 See [SECURITY.md](SECURITY.md) for reporting security vulnerabilities.
 
 ## Support
 
-- **Report Issues:** [GitHub Issues](https://github.com/watchapi/watchapi-vscode/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/watchapi/watchapi-vscode/discussions)
-- **Documentation:** [docs.watchapi.dev](https://docs.watchapi.dev)
-- **Website:** [watchapi.dev](https://watchapi.dev)
+-   **Report Issues:** [GitHub Issues](https://github.com/watchapi/watchapi/issues)
+-   **Discussions:** [GitHub Discussions](https://github.com/watchapi/watchapi/discussions)
+-   **Documentation:** [docs.watchapi.dev](https://docs.watchapi.dev)
+-   **Website:** [watchapi.dev](https://watchapi.dev)
 
 ## License
 

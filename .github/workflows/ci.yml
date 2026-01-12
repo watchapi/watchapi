@@ -131,7 +131,7 @@ jobs:
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
-          name: watchapi-vscode-${{ github.sha }}.vsix
+          name: watchapi-${{ github.sha }}.vsix
           path: 'packages/vscode-extension/*.vsix'
 
   # Deploy Docs to Cloudflare Pages

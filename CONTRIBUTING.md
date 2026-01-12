@@ -4,15 +4,15 @@ Thank you for your interest in contributing to WatchAPI Client! This document pr
 
 ## Table of Contents
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Setup](#development-setup)
-- [How to Contribute](#how-to-contribute)
-- [Pull Request Process](#pull-request-process)
-- [Coding Standards](#coding-standards)
-- [Commit Messages](#commit-messages)
-- [Reporting Bugs](#reporting-bugs)
-- [Suggesting Features](#suggesting-features)
+-   [Code of Conduct](#code-of-conduct)
+-   [Getting Started](#getting-started)
+-   [Development Setup](#development-setup)
+-   [How to Contribute](#how-to-contribute)
+-   [Pull Request Process](#pull-request-process)
+-   [Coding Standards](#coding-standards)
+-   [Commit Messages](#commit-messages)
+-   [Reporting Bugs](#reporting-bugs)
+-   [Suggesting Features](#suggesting-features)
 
 ## Code of Conduct
 
@@ -32,16 +32,16 @@ This project adheres to a Code of Conduct that all contributors are expected to 
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- [pnpm](https://pnpm.io/) (v9 or higher)
-- [Visual Studio Code](https://code.visualstudio.com/)
+-   [Node.js](https://nodejs.org/) (v18 or higher)
+-   [pnpm](https://pnpm.io/) (v9 or higher)
+-   [Visual Studio Code](https://code.visualstudio.com/)
 
 ### Installation
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/watchapi-vscode.git
-cd watchapi-vscode
+git clone https://github.com/YOUR_USERNAME/watchapi.git
+cd watchapi
 
 # Install dependencies
 pnpm install
@@ -73,98 +73,98 @@ pnpm run vscode:package # Create .vsix package
 
 Before submitting a bug report:
 
-- Check the [existing issues](../../issues) to avoid duplicates
-- Update to the latest version to see if the issue persists
-- Collect information about your environment (OS, VS Code version, extension version)
+-   Check the [existing issues](../../issues) to avoid duplicates
+-   Update to the latest version to see if the issue persists
+-   Collect information about your environment (OS, VS Code version, extension version)
 
 When submitting a bug report, include:
 
-- Clear, descriptive title
-- Steps to reproduce the issue
-- Expected vs actual behavior
-- Screenshots or GIFs if applicable
-- Environment details
-- Any relevant error messages or logs
+-   Clear, descriptive title
+-   Steps to reproduce the issue
+-   Expected vs actual behavior
+-   Screenshots or GIFs if applicable
+-   Environment details
+-   Any relevant error messages or logs
 
 ### Suggesting Features
 
 Feature requests are welcome! Before submitting:
 
-- Check existing issues and discussions
-- Ensure the feature aligns with project goals
-- Consider if it could be implemented as a separate extension
+-   Check existing issues and discussions
+-   Ensure the feature aligns with project goals
+-   Consider if it could be implemented as a separate extension
 
 When suggesting a feature:
 
-- Provide a clear use case
-- Explain the expected behavior
-- Consider alternative solutions
-- Include mockups or examples if applicable
+-   Provide a clear use case
+-   Explain the expected behavior
+-   Consider alternative solutions
+-   Include mockups or examples if applicable
 
 ### Code Contributions
 
 Areas where contributions are especially welcome:
 
-- Bug fixes
-- Performance improvements
-- Documentation improvements
-- Test coverage
-- New parser support (frameworks, libraries)
-- UI/UX enhancements
+-   Bug fixes
+-   Performance improvements
+-   Documentation improvements
+-   Test coverage
+-   New parser support (frameworks, libraries)
+-   UI/UX enhancements
 
 ## Pull Request Process
 
 1. **Create a Branch**
 
-   ```bash
-   git checkout -b feature/your-feature-name
-   # or
-   git checkout -b fix/your-bug-fix
-   ```
+    ```bash
+    git checkout -b feature/your-feature-name
+    # or
+    git checkout -b fix/your-bug-fix
+    ```
 
 2. **Make Your Changes**
 
-   - Write clear, self-documenting code
-   - Add tests for new functionality
-   - Update documentation as needed
-   - Ensure all tests pass
-   - Follow the coding standards
+    - Write clear, self-documenting code
+    - Add tests for new functionality
+    - Update documentation as needed
+    - Ensure all tests pass
+    - Follow the coding standards
 
 3. **Commit Your Changes**
 
-   ```bash
-   git add .
-   git commit -m "feat: add new feature"
-   ```
+    ```bash
+    git add .
+    git commit -m "feat: add new feature"
+    ```
 
 4. **Push to Your Fork**
 
-   ```bash
-   git push origin feature/your-feature-name
-   ```
+    ```bash
+    git push origin feature/your-feature-name
+    ```
 
 5. **Open a Pull Request**
 
-   - Use a clear, descriptive title
-   - Reference any related issues
-   - Describe what changes you made and why
-   - Include screenshots for UI changes
-   - Ensure CI checks pass
+    - Use a clear, descriptive title
+    - Reference any related issues
+    - Describe what changes you made and why
+    - Include screenshots for UI changes
+    - Ensure CI checks pass
 
 6. **Review Process**
-   - Maintainers will review your PR
-   - Address any requested changes
-   - Once approved, your PR will be merged
+    - Maintainers will review your PR
+    - Address any requested changes
+    - Once approved, your PR will be merged
 
 ## Coding Standards
 
 ### TypeScript Style
 
-- Use TypeScript strict mode
-- Prefer `const` over `let`, avoid `var`
-- Use arrow functions for callbacks
-- Use async/await over promises when possible
-- Add JSDoc comments for public APIs
+-   Use TypeScript strict mode
+-   Prefer `const` over `let`, avoid `var`
+-   Use arrow functions for callbacks
+-   Use async/await over promises when possible
+-   Add JSDoc comments for public APIs
 
 ### File Organization
 
@@ -182,20 +182,20 @@ src/
 
 ### Naming Conventions
 
-- **Files**: `kebab-case.ts`
-- **Classes**: `PascalCase`
-- **Functions/Variables**: `camelCase`
-- **Constants**: `UPPER_SNAKE_CASE`
-- **Interfaces**: `PascalCase` (no `I` prefix)
-- **Types**: `PascalCase`
+-   **Files**: `kebab-case.ts`
+-   **Classes**: `PascalCase`
+-   **Functions/Variables**: `camelCase`
+-   **Constants**: `UPPER_SNAKE_CASE`
+-   **Interfaces**: `PascalCase` (no `I` prefix)
+-   **Types**: `PascalCase`
 
 ### Code Quality
 
-- Run `pnpm run lint` before committing
-- Run `pnpm run check-types` to verify TypeScript
-- Write self-documenting code
-- Add comments for complex logic
-- Keep functions small and focused
+-   Run `pnpm run lint` before committing
+-   Run `pnpm run check-types` to verify TypeScript
+-   Write self-documenting code
+-   Add comments for complex logic
+-   Keep functions small and focused
 
 ## Commit Messages
 
@@ -211,14 +211,14 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 
 ### Types
 
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, etc.)
-- `refactor`: Code refactoring
-- `perf`: Performance improvements
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks
+-   `feat`: New feature
+-   `fix`: Bug fix
+-   `docs`: Documentation changes
+-   `style`: Code style changes (formatting, etc.)
+-   `refactor`: Code refactoring
+-   `perf`: Performance improvements
+-   `test`: Adding or updating tests
+-   `chore`: Maintenance tasks
 
 ### Examples
 
@@ -234,16 +234,16 @@ refactor(storage): simplify endpoint persistence logic
 
 ## Testing
 
-- Add tests for new features
-- Ensure existing tests pass
-- Test manually in VS Code Extension Development Host
-- Test with different frameworks (Next.js, NestJS, tRPC)
+-   Add tests for new features
+-   Ensure existing tests pass
+-   Test manually in VS Code Extension Development Host
+-   Test with different frameworks (Next.js, NestJS, tRPC)
 
 ## Questions?
 
-- Open a [Discussion](../../discussions) for general questions
-- Open an [Issue](../../issues) for bug reports or feature requests
-- Check existing documentation and issues first
+-   Open a [Discussion](../../discussions) for general questions
+-   Open an [Issue](../../issues) for bug reports or feature requests
+-   Check existing documentation and issues first
 
 ## License
 
