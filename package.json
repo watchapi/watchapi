@@ -118,6 +118,11 @@
         "icon": "$(gear)"
       },
       {
+        "command": "watchapi.export",
+        "title": "Export",
+        "icon": "$(export)"
+      },
+      {
         "command": "watchapi.logout",
         "title": "Logout",
         "icon": "$(sign-out)"
@@ -168,6 +173,11 @@
         },
         {
           "command": "watchapi.openSettings",
+          "when": "view == watchapi.collections",
+          "group": "menu@2"
+        },
+        {
+          "command": "watchapi.export",
           "when": "view == watchapi.collections",
           "group": "menu@2"
         },

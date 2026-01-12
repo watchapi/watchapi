@@ -28,6 +28,7 @@ import {
   registerOrganizationCommands,
   registerSyncCommands,
   registerUploadCommands,
+  registerExportCommands,
 } from "@/commands";
 
 /**
@@ -207,6 +208,7 @@ function registerCommands(
   registerSyncCommands(context, syncService, treeProvider);
   registerNavigationCommands(context);
   registerUploadCommands(context, uploadModal, treeProvider);
+  registerExportCommands(context, collectionsService, endpointsService);
 
   // Show status command (kept here as it's a simple placeholder)
   context.subscriptions.push(

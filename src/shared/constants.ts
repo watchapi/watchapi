@@ -24,6 +24,7 @@ export const COMMANDS = {
   MORE_MENU: "watchapi.moreMenu",
   SWITCH_ORGANIZATION: "watchapi.switchOrganization",
   WARNING: "watchapi.warning",
+  EXPORT: "watchapi.export",
 } as const;
 
 // View IDs
