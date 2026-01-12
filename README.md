@@ -35,7 +35,7 @@
 
 **Full REST Client**
 
-- Execute HTTP requests (GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS)
+- Execute HTTP requests
 - View response status, headers, and body inline
 - Organize endpoints in collections
 - Full request customization (headers, body, query params)
@@ -61,13 +61,13 @@
 
 ## Quick Start
 
-1. Install the extension from the VS Code Marketplace
-2. Click the WatchAPI icon in the activity bar
+1. Install the extension: [Marketplace](https://marketplace.visualstudio.com/items?itemName=WatchAPI.watchapi-client) or [Open VSX](https://open-vsx.org/extension/watchapi/watchapi-client)
+2. Click the 'watch' icon in the activity bar
 3. **Pull from Code:** Auto-detect all Next.js/NestJS/tRPC endpoints (recommended)
-4. **Or create manually:** Click "New Collection" to add endpoints by hand
-5. Click any endpoint to execute and view the response
+4. **Or create manually:** Click '+ New Collection' to add endpoints by hand
+5. Navigate and open requests to execute: 'Send Request'
 
-Works offline by default. Sign in optional (enables team features).
+Works locally by default. Sign in optional (enables team features).
 
 ## Comparison
 
@@ -88,7 +88,6 @@ Works offline by default. Sign in optional (enables team features).
 - No telemetry or usage tracking
 - Optional cloud sync (only when signed in)
 - **Open source** under MIT license
-- Community-driven development
 
 Privacy Policy: [https://watchapi.dev/privacy](https://watchapi.dev/privacy)
 
@@ -113,7 +112,7 @@ See [SECURITY.md](SECURITY.md) for reporting security vulnerabilities.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
+This project is under the [MIT License](LICENSE).
 
 ---
 
