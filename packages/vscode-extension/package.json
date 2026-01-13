@@ -285,6 +285,7 @@
     "dependencies": {
         "@trpc/client": "^11.0.0",
         "@vscode/test-cli": "^0.0.12",
+        "@watchapi/parsers": "workspace:*",
         "flat": "^6.0.1",
         "ts-morph": "^27.0.2",
         "zod": "^3.22.4"

@@ -5,7 +5,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 
-import { logger } from "@/shared/logger";
+import { logger } from "../lib/logger";
 
 export async function hasWorkspaceDependency(
   dependencyNames: string[],

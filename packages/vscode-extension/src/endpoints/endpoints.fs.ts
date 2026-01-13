@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { EndpointsService } from "@/endpoints/endpoints.service";
-import { constructHttpFile, parseHttpFile } from "@/parser";
+import { constructHttpFile, parseHttpFile } from "@watchapi/parsers";
 import { ENV_FILE_NAME } from "@/shared";
 
 export class EndpointsFileSystemProvider implements vscode.FileSystemProvider {

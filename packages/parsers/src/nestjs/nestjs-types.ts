@@ -2,7 +2,7 @@
  * NestJS parser types
  */
 
-import type { HttpMethod } from "@/shared/constants";
+import type { HttpMethod } from "../lib/constants";
 
 export interface NestJsRouteHandler {
   path: string;

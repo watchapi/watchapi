@@ -1,0 +1,56 @@
+{
+  "name": "@watchapi/parsers",
+  "version": "0.1.0",
+  "description": "Shared parsers for extracting API endpoints from Next.js, NestJS, and tRPC projects",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "keywords": [
+    "api",
+    "parser",
+    "nextjs",
+    "nestjs",
+    "trpc",
+    "typescript",
+    "ast"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "flat": "^6.0.1",
+    "ts-morph": "^27.0.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/flat": "^5.0.5",
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vscode": {
+      "optional": true
+    }
+  }
+}

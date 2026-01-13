@@ -2,8 +2,8 @@
  * NestJS parser constants
  */
 
-import { HTTP_METHODS } from "@/shared/constants";
-import type { HttpMethod } from "@/shared/constants";
+import { HTTP_METHODS } from "../lib/constants";
+import type { HttpMethod } from "../lib/constants";
 
 export const NESTJS_CONTROLLER_DECORATOR = "Controller";
 export const NESTJS_BODY_DECORATOR = "Body";

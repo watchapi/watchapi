@@ -7,10 +7,10 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { Node, Project, SourceFile, SyntaxKind } from 'ts-morph';
 
-import { logger } from '@/shared/logger';
-import { FILE_PATTERNS } from '@/shared/constants';
-import type { ParsedRoute } from '@/shared/types';
-import type { HttpMethod } from '@/shared/constants';
+import { logger } from '../lib/logger';
+import { FILE_PATTERNS } from '../lib/constants';
+import type { ParsedRoute } from '../lib/types';
+import type { HttpMethod } from '../lib/constants';
 
 import { DB_PATTERNS, VALIDATION_PATTERNS, ERROR_PATTERNS } from './nextjs-constants';
 import {

@@ -15,7 +15,7 @@ import {
 import { EndpointsService } from "@/endpoints";
 import { CacheService, SyncService } from "@/sync";
 import { StatusBarManager, UploadModal } from "@/ui";
-import { hasNextJs, hasTRPC, hasNestJs } from "@/parser";
+import { hasNextJs, hasTRPC, hasNestJs } from "@watchapi/parsers";
 import { REST_CLIENT } from "@/shared";
 import { EndpointsFileSystemProvider } from "./endpoints/endpoints.fs";
 import { openEndpointEditor } from "./endpoints/endpoints.editor";

@@ -10,7 +10,7 @@
             "type": "extensionHost",
             "request": "launch",
             "args": [
-                "--profile=Debugging (WatchAPI Client)",
+                "--profile=Debugging (REST Client)",
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
             "outFiles": ["${workspaceFolder}/dist/**/*.js"],

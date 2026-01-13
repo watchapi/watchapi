@@ -2,7 +2,6 @@
  * Extension constants
  */
 
-export const EXTENSION_ID = "watchapi-client";
 export const EXTENSION_NAME = "WatchAPI";
 
 export const ENV_FILE_NAME = "rest-client.env.json";
@@ -27,11 +26,6 @@ export const COMMANDS = {
   EXPORT: "watchapi.export",
 } as const;
 
-// View IDs
-export const VIEWS = {
-  COLLECTIONS: "watchapi.collections",
-} as const;
-
 // Storage keys
 export const STORAGE_KEYS = {
   JWT_TOKEN: "watchapi.jwt_token",
@@ -54,15 +48,6 @@ export const SYNC_CONFIG = {
 export const REST_CLIENT = {
   EXTENSION_ID: "humao.rest-client",
   NAME: "REST Client",
-} as const;
-
-// File patterns
-export const FILE_PATTERNS = {
-  NEXTJS_APP_ROUTES: "**/app/api/**/route.{ts,js}",
-  NEXTJS_PAGE_ROUTES: "**/pages/api/**/*.{ts,js}",
-  TRPC_ROUTERS: "**/*.router.{ts,js}",
-  TRPC_SERVER: "**/server/trpc.{ts,js}",
-  NESTJS_CONTROLLERS: "**/*.controller.{ts,js}",
 } as const;
 
 // HTTP Methods

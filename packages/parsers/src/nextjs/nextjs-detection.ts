@@ -12,7 +12,7 @@ import {
 	RESERVED_SEGMENTS,
 } from './nextjs-constants';
 import type { DynamicSegment, RouteDetectionResult, DebugLogger } from './nextjs-types';
-import type { HttpMethod } from '@/shared/constants';
+import type { HttpMethod } from '../lib/constants';
 
 const routePathCache = new Map<string, RouteDetectionResult>();
 

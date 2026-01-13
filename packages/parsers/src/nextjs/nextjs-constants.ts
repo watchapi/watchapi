@@ -2,7 +2,7 @@
  * Next.js parser constants
  */
 
-import type { HttpMethod } from '@/shared/constants';
+import type { HttpMethod } from '../lib/constants';
 
 /**
  * HTTP methods supported by Next.js App Router

@@ -17,10 +17,10 @@ import {
   Type,
 } from "ts-morph";
 
-import { logger } from "@/shared/logger";
-import { FILE_PATTERNS } from "@/shared/constants";
-import type { ParsedRoute } from "@/shared/types";
-import type { HttpMethod } from "@/shared/constants";
+import { logger } from "../lib/logger";
+import { FILE_PATTERNS } from "../lib/constants";
+import type { ParsedRoute } from "../lib/types";
+import type { HttpMethod } from "../lib/constants";
 import {
   createDebugLogger,
   findTsConfig,

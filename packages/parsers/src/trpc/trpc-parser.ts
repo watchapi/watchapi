@@ -17,9 +17,9 @@ import {
   SyntaxKind,
 } from "ts-morph";
 
-import { logger } from "@/shared/logger";
-import { FILE_PATTERNS } from "@/shared/constants";
-import type { ParsedRoute } from "@/shared/types";
+import { logger } from "../lib/logger";
+import { FILE_PATTERNS } from "../lib/constants";
+import type { ParsedRoute } from "../lib/types";
 import { extractBodyFromSchema } from "../shared/zod-schema-parser";
 
 import { DEFAULT_TRPC_INCLUDE, SIDE_EFFECT_PATTERNS } from "./trpc-constants";

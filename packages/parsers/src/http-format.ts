@@ -3,15 +3,15 @@
  * Compatible with REST Client extension format
  */
 
-import { logger } from "@/shared/logger";
-import { ParserError } from "@/shared/errors";
+import { logger } from "./lib/logger";
+import { ParserError } from "./lib/errors";
 import type {
   ApiEndpoint,
   Environment,
   CreateApiEndpointInput,
-} from "@/shared/types";
-import type { HttpMethod } from "@/shared/constants";
-import { humanizeRouteName } from "@/endpoints/endpoints.editor";
+} from "./lib/types";
+import type { HttpMethod } from "./lib/constants";
+import { humanizeRouteName } from "./lib/utils";
 import { flatten } from "flat";
 
 /**

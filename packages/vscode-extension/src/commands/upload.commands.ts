@@ -13,7 +13,7 @@ import {
 	hasTRPC,
 	parseNestJsRoutes,
 	hasNestJs,
-} from "@/parser";
+} from "@watchapi/parsers";
 import type { UploadModal } from "@/ui";
 import type { CollectionsTreeProvider } from "@/collections";
 
