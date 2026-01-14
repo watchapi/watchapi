@@ -2,7 +2,7 @@
     "name": "watchapi-client",
     "displayName": "WatchAPI - REST Client & API Testing",
     "description": "REST API client for testing and monitoring endpoints. Auto-import from Next.js, NestJS & tRPC. Alternative to Postman and Insomnia.",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "icon": "assets/marketplace-logo.png",
     "publisher": "watchapi",
     "engines": {

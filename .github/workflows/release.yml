@@ -46,7 +46,7 @@ jobs:
         if: success()
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
-        run: pnpm --filter watchapi-client exec ovsx publish packages/vscode-extension/*.vsix -p $OVSX_PAT
+        run: pnpm --filter watchapi-client exec ovsx publish *.vsix -p $OVSX_PAT
 
       - name: Publish to VS Code Marketplace
         if: success()
