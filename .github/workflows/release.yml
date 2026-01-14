@@ -44,9 +44,10 @@ jobs:
 
       - name: Publish to Open-VSX
         if: success()
+        working-directory: packages/vscode-extension
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
-        run: pnpm --filter watchapi-client exec ovsx publish *.vsix -p $OVSX_PAT
+        run: npx ovsx publish *.vsix -p $OVSX_PAT
 
       - name: Publish to VS Code Marketplace
         if: success()
