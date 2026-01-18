@@ -18,7 +18,6 @@ import {
 } from "ts-morph";
 
 import { logger } from "../lib/logger";
-import { FILE_PATTERNS } from "../lib/constants";
 import type { ParsedRoute } from "../lib/types";
 import { extractBodyFromSchema } from "../shared/zod-schema-parser";
 
@@ -96,8 +95,8 @@ export async function parseTRPCRouters(): Promise<ParsedRoute[]> {
     // Find tsconfig.json
     const tsconfigPath = await findTsConfig(rootDir);
     if (!tsconfigPath) {
-      logger.warn("No tsconfig.json found, falling back to basic parsing");
-      return await parseTRPCRoutersBasic();
+      logger.warn("No tsconfig.json found, cannot parse routes without AST");
+      return [];
     }
 
     // Initialize ts-morph project
@@ -169,8 +168,7 @@ export async function parseTRPCRouters(): Promise<ParsedRoute[]> {
     return routes;
   } catch (error) {
     logger.error("Failed to parse tRPC routers with AST", error);
-    // Fallback to basic parsing
-    return await parseTRPCRoutersBasic();
+    return [];
   }
 }
 
@@ -680,87 +678,6 @@ function convertToRoutes(
   });
 }
 
-/**
- * Fallback basic parsing using regex (original implementation)
- */
-async function parseTRPCRoutersBasic(): Promise<ParsedRoute[]> {
-  try {
-    logger.debug("Using basic regex-based tRPC parsing");
-    const routes: ParsedRoute[] = [];
-
-    // Find all router files
-    const files = await vscode.workspace.findFiles(
-      FILE_PATTERNS.TRPC_ROUTERS,
-      "**/node_modules/**",
-    );
-
-    for (const file of files) {
-      const parsedRoutes = await parseTRPCRouterFileBasic(file);
-      routes.push(...parsedRoutes);
-    }
-
-    logger.info(`Parsed ${routes.length} tRPC procedures (basic mode)`);
-    return routes;
-  } catch (error) {
-    logger.error("Failed to parse tRPC routers (basic mode)", error);
-    return [];
-  }
-}
-
-/**
- * Parse a single tRPC router file using regex
- */
-async function parseTRPCRouterFileBasic(
-  uri: vscode.Uri,
-): Promise<ParsedRoute[]> {
-  try {
-    const content = await vscode.workspace.fs.readFile(uri);
-    const text = content.toString();
-    const routes: ParsedRoute[] = [];
-
-    // Extract router name from file path or export
-    const fileName = path.basename(uri.fsPath, path.extname(uri.fsPath));
-    const routerName = fileName.replace(/\.router$/, "");
-
-    // Find all procedure definitions
-    const queryRegex = /\.query\(['"]([^'"]+)['"]/g;
-    const mutationRegex = /\.mutation\(['"]([^'"]+)['"]/g;
-
-    // Parse queries (GET)
-    let match;
-    while ((match = queryRegex.exec(text)) !== null) {
-      const procedureName = match[1];
-      const routePath = `/api/trpc/${routerName}.${procedureName}`;
-
-      routes.push({
-        name: `GET ${routePath}`,
-        path: routePath,
-        method: "GET",
-        filePath: uri.fsPath,
-        type: "trpc",
-      });
-    }
-
-    // Parse mutations (POST)
-    while ((match = mutationRegex.exec(text)) !== null) {
-      const procedureName = match[1];
-      const routePath = `/api/trpc/${routerName}.${procedureName}`;
-
-      routes.push({
-        name: `POST ${routePath}`,
-        path: routePath,
-        method: "POST",
-        filePath: uri.fsPath,
-        type: "trpc",
-      });
-    }
-
-    return routes;
-  } catch (error) {
-    logger.error(`Failed to parse tRPC router file: ${uri.fsPath}`, error);
-    return [];
-  }
-}
 
 /**
  * Create debug logger

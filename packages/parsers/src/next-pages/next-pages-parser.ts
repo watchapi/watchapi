@@ -8,13 +8,11 @@ import * as path from 'path';
 import { Node, Project, SourceFile, SyntaxKind } from 'ts-morph';
 
 import { logger } from '../lib/logger';
-import { FILE_PATTERNS } from '../lib/constants';
 import type { ParsedRoute } from '../lib/types';
 import type { HttpMethod } from '../lib/constants';
 
 import {
 	isTRPCHandler,
-	isTRPCHandlerContent,
 	extractDynamicSegments,
 	convertDynamicSegments,
 	normalizeRoutePath,
@@ -23,9 +21,7 @@ import {
 	extractBodyFromHandler,
 	analyzeHandler,
 	extractMethodLiteral,
-	NEXTJS_HTTP_METHODS,
 	type DebugLogger,
-	type HandlerAnalysis,
 } from '../shared/next-shared';
 import {
 	createDebugLogger,
@@ -327,15 +323,7 @@ function detectPagesRouterMethods(handler: Node, debug: DebugLogger): HttpMethod
 		}
 	});
 
-	const detected = Array.from(methods);
-
-	// If no specific methods found, default to GET
-	if (detected.length === 0) {
-		debug('No specific methods found, defaulting to GET');
-		return ['GET'];
-	}
-
-	return detected;
+	return Array.from(methods);
 }
 
 /**
@@ -432,8 +420,8 @@ export async function parseNextPagesRoutes(): Promise<ParsedRoute[]> {
 
 		const tsconfigPath = await findTsConfig(rootDir);
 		if (!tsconfigPath) {
-			logger.warn('No tsconfig.json found, falling back to basic parsing');
-			return await parseNextPagesRoutesBasic();
+			logger.warn('No tsconfig.json found, cannot parse routes without AST');
+			return [];
 		}
 
 		const project = new Project({
@@ -481,97 +469,7 @@ export async function parseNextPagesRoutes(): Promise<ParsedRoute[]> {
 		return routes;
 	} catch (error) {
 		logger.error('Failed to parse Next.js Pages Router routes with AST', error);
-		return await parseNextPagesRoutesBasic();
-	}
-}
-
-/**
- * Fallback to basic parsing without AST
- */
-async function parseNextPagesRoutesBasic(): Promise<ParsedRoute[]> {
-	try {
-		logger.debug('Parsing Next.js Pages Router routes (basic mode)');
-		const routes: ParsedRoute[] = [];
-
-		const files = await vscode.workspace.findFiles(
-			FILE_PATTERNS.NEXTJS_PAGE_ROUTES,
-			'**/node_modules/**',
-		);
-
-		for (const file of files) {
-			const parsedRoute = await parsePageRouteFileBasic(file);
-			if (parsedRoute) {
-				routes.push(parsedRoute);
-			}
-		}
-
-		logger.info(`Parsed ${routes.length} Pages Router routes (basic mode)`);
-		return routes;
-	} catch (error) {
-		logger.error('Failed to parse Pages Router routes (basic mode)', error);
 		return [];
 	}
 }
 
-/**
- * Parse a single Pages Router route file (basic mode)
- */
-async function parsePageRouteFileBasic(uri: vscode.Uri): Promise<ParsedRoute | null> {
-	try {
-		const content = await vscode.workspace.fs.readFile(uri);
-		const text = content.toString();
-
-		if (isTRPCHandlerContent(text)) {
-			logger.debug(`Skipping tRPC handler: ${uri.fsPath}`);
-			return null;
-		}
-
-		const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-		if (!workspaceFolder) {
-			return null;
-		}
-
-		const relativePath = path.relative(workspaceFolder.uri.fsPath, uri.fsPath);
-		const routePath = extractPageRoutePathBasic(relativePath);
-
-		let method: HttpMethod = 'GET';
-
-		if (text.match(/req\.method\s*===\s*['"]POST['"]/)) {
-			method = 'POST';
-		} else if (text.match(/req\.method\s*===\s*['"]PUT['"]/)) {
-			method = 'PUT';
-		} else if (text.match(/req\.method\s*===\s*['"]PATCH['"]/)) {
-			method = 'PATCH';
-		} else if (text.match(/req\.method\s*===\s*['"]DELETE['"]/)) {
-			method = 'DELETE';
-		}
-
-		return {
-			name: `${method} ${routePath}`,
-			path: routePath,
-			method,
-			filePath: uri.fsPath,
-			type: 'nextjs-page',
-		};
-	} catch (error) {
-		logger.error(`Failed to parse page route file: ${uri.fsPath}`, error);
-		return null;
-	}
-}
-
-/**
- * Extract API route path from file path (Pages Router - basic mode)
- */
-function extractPageRoutePathBasic(relativePath: string): string {
-	let routePath = relativePath
-		.replace(/^(src\/)?pages\/api\//, '/api/')
-		.replace(/\.(ts|js)$/, '');
-
-	routePath = routePath.replace(/\[\[\.\.\.([^\]]+)\]\]/g, ':$1*?');
-	routePath = routePath.replace(/\[\.\.\.([^\]]+)\]/g, ':$1*');
-	routePath = routePath.replace(/\[([^\]]+)\]/g, ':$1');
-
-	routePath = routePath.replace(/\/index$/, '');
-
-	return routePath || '/api';
-}
