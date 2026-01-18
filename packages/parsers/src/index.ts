@@ -2,7 +2,6 @@
  * Parser module barrel export
  */
 
-export * from "./http-format";
 export * from "./next-app/next-app-parser";
 export * from "./next-pages/next-pages-parser";
 export * from "./nestjs/nestjs-parser";
