@@ -8,13 +8,11 @@ import * as path from 'path';
 import { Node, Project, SourceFile } from 'ts-morph';
 
 import { logger } from '../lib/logger';
-import { FILE_PATTERNS } from '../lib/constants';
 import type { ParsedRoute } from '../lib/types';
 import type { HttpMethod } from '../lib/constants';
 
 import {
 	isTRPCHandler,
-	isTRPCHandlerContent,
 	extractDynamicSegments,
 	convertDynamicSegments,
 	normalizeRoutePath,
@@ -25,7 +23,6 @@ import {
 	analyzeHandler,
 	NEXTJS_HTTP_METHODS,
 	type DebugLogger,
-	type HandlerAnalysis,
 } from '../shared/next-shared';
 import {
 	createDebugLogger,
@@ -364,8 +361,8 @@ export async function parseNextAppRoutes(): Promise<ParsedRoute[]> {
 
 		const tsconfigPath = await findTsConfig(rootDir);
 		if (!tsconfigPath) {
-			logger.warn('No tsconfig.json found, falling back to basic parsing');
-			return await parseNextAppRoutesBasic();
+			logger.warn('No tsconfig.json found, cannot parse routes without AST');
+			return [];
 		}
 
 		const project = new Project({
@@ -413,112 +410,7 @@ export async function parseNextAppRoutes(): Promise<ParsedRoute[]> {
 		return routes;
 	} catch (error) {
 		logger.error('Failed to parse Next.js App Router routes with AST', error);
-		return await parseNextAppRoutesBasic();
-	}
-}
-
-/**
- * Fallback to basic parsing without AST
- */
-async function parseNextAppRoutesBasic(): Promise<ParsedRoute[]> {
-	try {
-		logger.debug('Parsing Next.js App Router routes (basic mode)');
-		const routes: ParsedRoute[] = [];
-
-		const files = await vscode.workspace.findFiles(
-			FILE_PATTERNS.NEXTJS_APP_ROUTES,
-			'**/node_modules/**',
-		);
-
-		for (const file of files) {
-			const parsedRoutes = await parseAppRouteFileBasic(file);
-			routes.push(...parsedRoutes);
-		}
-
-		logger.info(`Parsed ${routes.length} App Router routes (basic mode)`);
-		return routes;
-	} catch (error) {
-		logger.error('Failed to parse App Router routes (basic mode)', error);
 		return [];
 	}
 }
 
-/**
- * Parse a single App Router route file (basic mode)
- */
-async function parseAppRouteFileBasic(uri: vscode.Uri): Promise<ParsedRoute[]> {
-	try {
-		const content = await vscode.workspace.fs.readFile(uri);
-		const text = content.toString();
-
-		if (isTRPCHandlerContent(text)) {
-			logger.debug(`Skipping tRPC handler: ${uri.fsPath}`);
-			return [];
-		}
-
-		const routes: ParsedRoute[] = [];
-
-		const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-		if (!workspaceFolder) {
-			return routes;
-		}
-
-		const relativePath = path.relative(workspaceFolder.uri.fsPath, uri.fsPath);
-		const routePath = extractAppRoutePathBasic(relativePath);
-
-		const methods: HttpMethod[] = [];
-		if (text.match(/export\s+(async\s+)?function\s+GET/)) {
-			methods.push('GET');
-		}
-		if (text.match(/export\s+(async\s+)?function\s+POST/)) {
-			methods.push('POST');
-		}
-		if (text.match(/export\s+(async\s+)?function\s+PUT/)) {
-			methods.push('PUT');
-		}
-		if (text.match(/export\s+(async\s+)?function\s+PATCH/)) {
-			methods.push('PATCH');
-		}
-		if (text.match(/export\s+(async\s+)?function\s+DELETE/)) {
-			methods.push('DELETE');
-		}
-		if (text.match(/export\s+(async\s+)?function\s+HEAD/)) {
-			methods.push('HEAD');
-		}
-		if (text.match(/export\s+(async\s+)?function\s+OPTIONS/)) {
-			methods.push('OPTIONS');
-		}
-
-		for (const method of methods) {
-			routes.push({
-				name: `${method} ${routePath}`,
-				path: routePath,
-				method,
-				filePath: uri.fsPath,
-				type: 'nextjs-app',
-			});
-		}
-
-		return routes;
-	} catch (error) {
-		logger.error(`Failed to parse route file: ${uri.fsPath}`, error);
-		return [];
-	}
-}
-
-/**
- * Extract API route path from file path (basic mode)
- */
-function extractAppRoutePathBasic(relativePath: string): string {
-	const normalized = relativePath.replace(/^src\//, '');
-
-	let routePath = normalized
-		.replace(/^app\//, '/')
-		.replace(/\/route\.(ts|js)$/, '');
-
-	routePath = routePath.replace(/\[\[\.\.\.([^\]]+)\]\]/g, ':$1*?');
-	routePath = routePath.replace(/\[\.\.\.([^\]]+)\]/g, ':$1*');
-	routePath = routePath.replace(/\[([^\]]+)\]/g, ':$1');
-
-	return routePath || '/';
-}
