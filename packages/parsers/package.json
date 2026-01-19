@@ -41,16 +41,10 @@
   "devDependencies": {
     "@types/flat": "^5.0.5",
     "@types/node": "^20.14.0",
-    "@types/vscode": "^1.90.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"
-  },
-  "peerDependenciesMeta": {
-    "vscode": {
-      "optional": true
-    }
   }
 }
