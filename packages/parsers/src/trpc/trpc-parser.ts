@@ -1,10 +1,10 @@
 /**
  * tRPC procedure parser with AST-based detection
- * Provides deterministic and accurate parsing of tRPC routers
+ * Environment agnostic - works in CLI, VSCode, or any Node.js context
  */
 
-import * as vscode from "vscode";
 import * as path from "path";
+import * as fs from "fs";
 import {
   ArrowFunction,
   CallExpression,
@@ -14,14 +14,12 @@ import {
   PropertyAssignment,
   ShorthandPropertyAssignment,
   SourceFile,
-  SyntaxKind,
 } from "ts-morph";
 
-import { logger } from "../lib/logger";
 import type { ParsedRoute } from "../lib/types";
 import { extractBodyFromSchema } from "../shared/zod-schema-parser";
 
-import { DEFAULT_TRPC_INCLUDE, SIDE_EFFECT_PATTERNS } from "./trpc-constants";
+import { DEFAULT_TRPC_INCLUDE } from "./trpc-constants";
 import {
   buildRouterDetectionConfig,
   collectRouterCallSites,
@@ -42,148 +40,146 @@ import type {
 } from "./trpc-types";
 
 /**
- * Detect if current workspace has tRPC
+ * Options for tRPC parsing
  */
-export async function hasTRPC(): Promise<boolean> {
+export interface TrpcParseOptions {
+  rootDir: string;
+  tsconfigPath?: string;
+  include?: string[];
+  verbose?: boolean;
+  routerFactories?: string[];
+  routerIdentifierPattern?: string;
+}
+
+/**
+ * Result of tRPC parsing
+ */
+export interface TrpcParseResult {
+  routes: ParsedRoute[];
+  procedures: TrpcProcedureNode[];
+  routers: TrpcRouterMeta[];
+}
+
+/**
+ * Check if a project has tRPC installed
+ */
+export function hasTRPC(rootDir: string): boolean {
   try {
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders) {
+    const packageJsonPath = path.join(rootDir, "package.json");
+    if (!fs.existsSync(packageJsonPath)) {
       return false;
     }
 
-    // Check for package.json with @trpc/server dependency
-    for (const folder of workspaceFolders) {
-      const packageJsonUri = vscode.Uri.joinPath(folder.uri, "package.json");
-      try {
-        const content = await vscode.workspace.fs.readFile(packageJsonUri);
-        const packageJson = JSON.parse(content.toString());
+    const content = fs.readFileSync(packageJsonPath, "utf-8");
+    const packageJson = JSON.parse(content);
 
-        if (
-          packageJson.dependencies?.["@trpc/server"] ||
-          packageJson.devDependencies?.["@trpc/server"]
-        ) {
-          logger.info("Detected tRPC project");
-          return true;
-        }
-      } catch {
-        // Continue to next workspace folder
-      }
-    }
-
-    return false;
-  } catch (error) {
-    logger.error("Failed to detect tRPC", error);
-    return false;
-  }
-}
-
-/**
- * Parse tRPC router files using AST analysis
- */
-export async function parseTRPCRouters(): Promise<ParsedRoute[]> {
-  try {
-    logger.debug("Parsing tRPC routers with AST");
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders || workspaceFolders.length === 0) {
-      logger.warn("No workspace folders found");
-      return [];
-    }
-
-    const rootDir = workspaceFolders[0].uri.fsPath;
-    const debug = createDebugLogger(true); // Enable debug logging
-
-    // Find tsconfig.json
-    const tsconfigPath = await findTsConfig(rootDir);
-    if (!tsconfigPath) {
-      logger.warn("No tsconfig.json found, cannot parse routes without AST");
-      return [];
-    }
-
-    // Initialize ts-morph project
-    const project = new Project({
-      tsConfigFilePath: tsconfigPath,
-      skipAddingFilesFromTsConfig: false,
-    });
-
-    debug(`Using tsconfig at ${tsconfigPath}`);
-
-    // Add source files matching tRPC patterns
-    const includeGlobs = DEFAULT_TRPC_INCLUDE;
-    debug(`Include patterns: ${includeGlobs.join(", ")}`);
-
-    for (const pattern of includeGlobs) {
-      const fullPattern = path.join(rootDir, pattern);
-      try {
-        project.addSourceFilesAtPaths(fullPattern);
-      } catch (error) {
-        debug(`Failed to add files for pattern ${pattern}: ${error}`);
-      }
-    }
-
-    const sourceFiles = project
-      .getSourceFiles()
-      .filter((file: SourceFile) => file.getFilePath().startsWith(rootDir));
-
-    debug(`Found ${sourceFiles.length} source file(s) under root ${rootDir}`);
-
-    const nodes: TrpcProcedureNode[] = [];
-    const routers: TrpcRouterMeta[] = [];
-    const detection = buildRouterDetectionConfig(undefined, undefined, debug);
-    const routerMounts: RouterMountEdge[] = [];
-
-    // Extract procedures from each file
-    for (const file of sourceFiles) {
-      debug(`Scanning file ${path.relative(rootDir, file.getFilePath())}`);
-      const { nodes: fileNodes, routers: fileRouters } =
-        extractProceduresFromFile(
-          file,
-          rootDir,
-          detection,
-          routerMounts,
-          debug,
-        );
-      nodes.push(...fileNodes);
-      routers.push(...fileRouters);
-    }
-
-    // Resolve router paths for composition
-    const routerPathMap = resolveRouterPaths(routers, routerMounts, debug);
-    nodes.forEach((node) => {
-      const mapped = routerPathMap.get(node.router);
-      if (mapped !== undefined && mapped !== "") {
-        node.router = mapped;
-      }
-    });
-    routers.forEach((router) => {
-      const mapped = routerPathMap.get(router.name);
-      if (mapped !== undefined && mapped !== "") {
-        router.name = mapped;
-      }
-    });
-
-    // Convert to ParsedRoute format
-    const routes = convertToRoutes(nodes, rootDir);
-
-    logger.info(`Parsed ${routes.length} tRPC procedures using AST`);
-    return routes;
-  } catch (error) {
-    logger.error("Failed to parse tRPC routers with AST", error);
-    return [];
-  }
-}
-
-/**
- * Find tsconfig.json in workspace
- */
-async function findTsConfig(rootDir: string): Promise<string | null> {
-  const tsconfigPath = path.join(rootDir, "tsconfig.json");
-  try {
-    const uri = vscode.Uri.file(tsconfigPath);
-    await vscode.workspace.fs.stat(uri);
-    return tsconfigPath;
+    return !!(
+      packageJson.dependencies?.["@trpc/server"] ||
+      packageJson.devDependencies?.["@trpc/server"]
+    );
   } catch {
-    return null;
+    return false;
   }
+}
+
+/**
+ * Parse tRPC routers using AST analysis
+ */
+export function parseTRPCRouters(options: TrpcParseOptions): TrpcParseResult {
+  const { rootDir, verbose } = options;
+  const debug = createDebugLogger(verbose);
+
+  debug("Parsing tRPC routers with AST");
+
+  // Find tsconfig
+  const tsconfigPath = options.tsconfigPath
+    ? path.resolve(rootDir, options.tsconfigPath)
+    : findTsConfig(rootDir);
+
+  if (!tsconfigPath) {
+    debug("No tsconfig.json found, cannot parse routes without AST");
+    return { routes: [], procedures: [], routers: [] };
+  }
+
+  // Initialize ts-morph project
+  const project = new Project({
+    tsConfigFilePath: tsconfigPath,
+    skipAddingFilesFromTsConfig: false,
+  });
+
+  debug(`Using tsconfig at ${tsconfigPath}`);
+
+  // Add source files matching tRPC patterns
+  const includeGlobs = options.include?.length
+    ? options.include
+    : DEFAULT_TRPC_INCLUDE;
+
+  debug(`Include patterns: ${includeGlobs.join(", ")}`);
+
+  for (const pattern of includeGlobs) {
+    const fullPattern = path.join(rootDir, pattern);
+    try {
+      project.addSourceFilesAtPaths(fullPattern);
+    } catch (error) {
+      debug(`Failed to add files for pattern ${pattern}: ${error}`);
+    }
+  }
+
+  const sourceFiles = project
+    .getSourceFiles()
+    .filter((file: SourceFile) => file.getFilePath().startsWith(rootDir));
+
+  debug(`Found ${sourceFiles.length} source file(s) under root ${rootDir}`);
+
+  const nodes: TrpcProcedureNode[] = [];
+  const routers: TrpcRouterMeta[] = [];
+  const detection = buildRouterDetectionConfig(
+    options.routerFactories,
+    options.routerIdentifierPattern,
+    debug,
+  );
+  const routerMounts: RouterMountEdge[] = [];
+
+  // Extract procedures from each file
+  for (const file of sourceFiles) {
+    debug(`Scanning file ${path.relative(rootDir, file.getFilePath())}`);
+    const { nodes: fileNodes, routers: fileRouters } =
+      extractProceduresFromFile(file, rootDir, detection, routerMounts, debug);
+    nodes.push(...fileNodes);
+    routers.push(...fileRouters);
+  }
+
+  // Resolve router paths for composition
+  const routerPathMap = resolveRouterPaths(routers, routerMounts, debug);
+  nodes.forEach((node) => {
+    const mapped = routerPathMap.get(node.router);
+    if (mapped !== undefined && mapped !== "") {
+      node.router = mapped;
+    }
+  });
+  routers.forEach((router) => {
+    const mapped = routerPathMap.get(router.name);
+    if (mapped !== undefined && mapped !== "") {
+      router.name = mapped;
+    }
+  });
+
+  // Convert to ParsedRoute format
+  const routes = convertToRoutes(nodes, rootDir);
+
+  debug(`Parsed ${routes.length} tRPC procedures using AST`);
+  return { routes, procedures: nodes, routers };
+}
+
+/**
+ * Find tsconfig.json in directory
+ */
+function findTsConfig(rootDir: string): string | null {
+  const tsconfigPath = path.join(rootDir, "tsconfig.json");
+  if (fs.existsSync(tsconfigPath)) {
+    return tsconfigPath;
+  }
+  return null;
 }
 
 /**
@@ -458,6 +454,8 @@ function mapProcedureType(
 
 /**
  * Analyze resolver implementation
+ * Note: heuristic fields (usesDb, hasErrorHandling, hasSideEffects) are set to false
+ * as they are not reliably deterministic across different projects
  */
 function analyzeResolver(
   resolver?: ArrowFunction | FunctionExpression,
@@ -472,27 +470,19 @@ function analyzeResolver(
     };
   }
 
-  const body = resolver.getBody();
-  const resolverText = body.getText();
   const resolverLines =
     resolver.getEndLineNumber() - resolver.getStartLineNumber() + 1;
 
-  const usesDb = /\b(db\.|prisma\.)/.test(resolverText);
-  const hasErrorHandling =
-    resolverText.includes("TRPCError") ||
-    body.getDescendantsOfKind(SyntaxKind.TryStatement).length > 0 ||
-    body
-      .getDescendantsOfKind(SyntaxKind.ThrowStatement)
-      .some((throwStmt) =>
-        throwStmt.getExpression()?.getText().includes("TRPCError"),
-      );
-
-  const hasSideEffects = SIDE_EFFECT_PATTERNS.test(resolverText);
-
-  // tRPC always uses JSON
+  // tRPC always uses JSON - this is deterministic
   const headers = { "Content-Type": "application/json" };
 
-  return { resolverLines, usesDb, hasErrorHandling, hasSideEffects, headers };
+  return {
+    resolverLines,
+    usesDb: false,
+    hasErrorHandling: false,
+    hasSideEffects: false,
+    headers,
+  };
 }
 
 /**
@@ -590,11 +580,13 @@ function resolveRouterPaths(
     }
 
     const parentPath = resolve(edge.parent);
-    const path = parentPath ? `${parentPath}.${edge.property}` : edge.property;
+    const routePath = parentPath
+      ? `${parentPath}.${edge.property}`
+      : edge.property;
 
-    resolved.set(name, path);
+    resolved.set(name, routePath);
     resolving.delete(name);
-    return path;
+    return routePath;
   };
 
   routers.forEach((router) => resolve(router.name));
@@ -609,11 +601,7 @@ function resolveRouterPaths(
 }
 
 /**
- * Convert TrpcProcedureNode to ParsedRoute
- */
-/**
  * Convert JSON body example to query parameters
- * For tRPC queries (GET requests), input is sent as query params
  */
 function convertBodyToQueryParams(
   bodyExample: string,
@@ -633,7 +621,6 @@ function convertBodyToQueryParams(
       if (value === null || value === undefined) {
         queryParams[key] = "";
       } else if (typeof value === "object") {
-        // Skip complex objects - query params should be primitives
         continue;
       } else {
         queryParams[key] = String(value);
@@ -646,6 +633,9 @@ function convertBodyToQueryParams(
   }
 }
 
+/**
+ * Convert TrpcProcedureNode to ParsedRoute
+ */
 function convertToRoutes(
   nodes: TrpcProcedureNode[],
   rootDir: string,
@@ -657,8 +647,6 @@ function convertToRoutes(
 
     const method = node.method === "query" ? "GET" : "POST";
 
-    // For GET requests (queries), convert body to query params
-    // For POST requests (mutations), keep as body
     const queryParams =
       method === "GET" && node.bodyExample
         ? convertBodyToQueryParams(node.bodyExample)
@@ -670,14 +658,13 @@ function convertToRoutes(
       path: routePath,
       method,
       filePath: path.join(rootDir, node.file),
-      type: "trpc",
+      type: "trpc" as const,
       headers: Object.keys(node.headers).length > 0 ? node.headers : undefined,
       query: queryParams,
       body,
     };
   });
 }
-
 
 /**
  * Create debug logger
@@ -687,39 +674,13 @@ function createDebugLogger(verbose?: boolean): DebugLogger {
     if (!verbose) {
       return;
     }
-    logger.debug(`[trpc:parser] ${message}`);
+    console.log(`[trpc:parser] ${message}`);
   };
 }
 
 /**
- * Get tRPC base path from configuration
+ * Get tRPC base path (default /api/trpc)
  */
-export async function getTRPCBasePath(): Promise<string> {
-  try {
-    // Look for tRPC endpoint configuration
-    const files = await vscode.workspace.findFiles(
-      "**/pages/api/trpc/[trpc].{ts,js}",
-      "**/node_modules/**",
-    );
-
-    if (files.length > 0) {
-      return "/api/trpc";
-    }
-
-    // Check for App Router tRPC endpoint
-    const appFiles = await vscode.workspace.findFiles(
-      "**/app/api/trpc/[...trpc]/route.{ts,js}",
-      "**/node_modules/**",
-    );
-
-    if (appFiles.length > 0) {
-      return "/api/trpc";
-    }
-
-    // Default
-    return "/api/trpc";
-  } catch (error) {
-    logger.error("Failed to get tRPC base path", error);
-    return "/api/trpc";
-  }
+export function getTRPCBasePath(): string {
+  return "/api/trpc";
 }

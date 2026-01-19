@@ -41,7 +41,12 @@ import type { DebugLogger, NestJsRouteHandler } from "./nestjs-types";
  */
 export async function hasNestJs(): Promise<boolean> {
   try {
-    const hasNest = await hasWorkspaceDependency([
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders || workspaceFolders.length === 0) {
+      return false;
+    }
+    const rootDir = workspaceFolders[0].uri.fsPath;
+    const hasNest = hasWorkspaceDependency(rootDir, [
       "@nestjs/core",
       "@nestjs/common",
     ]);
@@ -70,7 +75,7 @@ export async function parseNestJsRoutes(): Promise<ParsedRoute[]> {
     const rootDir = workspaceFolders[0].uri.fsPath;
     const debug = createDebugLogger("nestjs:parser", true);
 
-    const tsconfigPath = await findTsConfig(rootDir);
+    const tsconfigPath = findTsConfig(rootDir);
     const project = tsconfigPath
       ? new Project({
           tsConfigFilePath: tsconfigPath,

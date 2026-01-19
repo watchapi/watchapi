@@ -15,9 +15,21 @@ import {
     hasNextApp,
     hasNextPages,
     parseNextPagesRoutes,
+    type ParsedRoute,
 } from "@watchapi/parsers";
 import type { UploadModal } from "@/ui";
 import type { CollectionsTreeProvider } from "@/collections";
+
+/**
+ * Get workspace root directory
+ */
+function getWorkspaceRoot(): string | undefined {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders || workspaceFolders.length === 0) {
+        return undefined;
+    }
+    return workspaceFolders[0].uri.fsPath;
+}
 
 export function registerUploadCommands(
     context: vscode.ExtensionContext,
@@ -34,13 +46,23 @@ export function registerUploadCommands(
                     errorMessagePrefix: "Upload failed",
                 },
                 async () => {
-                    const [hasNextjsApp, hasNextjsPages, hasTrpc, hasNest] =
-                        await Promise.all([
-                            hasNextApp(),
-                            hasNextPages(),
-                            hasTRPC(),
-                            hasNestJs(),
-                        ]);
+                    const rootDir = getWorkspaceRoot();
+                    if (!rootDir) {
+                        vscode.window.showWarningMessage(
+                            "No workspace folder found.",
+                        );
+                        return;
+                    }
+
+                    // Refactored parsers (synchronous, require rootDir)
+                    const hasNextjsApp = hasNextApp(rootDir);
+                    const hasTrpc = hasTRPC(rootDir);
+
+                    // VSCode-dependent parsers (async)
+                    const [hasNextjsPages, hasNest] = await Promise.all([
+                        hasNextPages(),
+                        hasNestJs(),
+                    ]);
 
                     if (
                         !hasNextjsApp &&
@@ -61,23 +83,33 @@ export function registerUploadCommands(
                             title: "Detecting API routes...",
                         },
                         async () => {
-                            const [
-                                nextAppRoutes,
-                                nextPagesRoutes,
-                                trpcRoutes,
-                                nestRoutes,
-                            ] = await Promise.all([
-                                hasNextjsApp ? parseNextAppRoutes() : [],
-                                hasNextjsPages ? parseNextPagesRoutes() : [],
-                                hasTrpc ? parseTRPCRouters() : [],
-                                hasNest ? parseNestJsRoutes() : [],
-                            ]);
-                            return [
-                                ...nextAppRoutes,
-                                ...nextPagesRoutes,
-                                ...trpcRoutes,
-                                ...nestRoutes,
-                            ];
+                            const allRoutes: ParsedRoute[] = [];
+
+                            // Refactored parsers - pass options with rootDir
+                            if (hasNextjsApp) {
+                                const result = parseNextAppRoutes({ rootDir });
+                                allRoutes.push(...result.routes);
+                            }
+
+                            if (hasTrpc) {
+                                const result = parseTRPCRouters({ rootDir });
+                                allRoutes.push(...result.routes);
+                            }
+
+                            // VSCode-dependent parsers - old async API
+                            const [nextPagesRoutes, nestRoutes] =
+                                await Promise.all([
+                                    hasNextjsPages
+                                        ? parseNextPagesRoutes()
+                                        : Promise.resolve([]),
+                                    hasNest
+                                        ? parseNestJsRoutes()
+                                        : Promise.resolve([]),
+                                ]);
+
+                            allRoutes.push(...nextPagesRoutes, ...nestRoutes);
+
+                            return allRoutes;
                         },
                     );
 

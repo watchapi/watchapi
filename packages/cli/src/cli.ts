@@ -4,6 +4,7 @@ import { Command } from "commander";
 import { config } from "dotenv";
 import { DEFAULT_API_URL, loadAuthConfig } from "./auth-config.js";
 import { analyzeCommand } from "./commands/analyze.js";
+import { analyze2Command } from "./commands/analyze2.js";
 import { checkCommand } from "./commands/check.js";
 import { loginCommand } from "./commands/login.js";
 import { logoutCommand } from "./commands/logout.js";
@@ -46,6 +47,38 @@ program
   )
   .action(async (options) => {
     await analyzeCommand({
+      target: options.target,
+      root: options.root,
+      tsconfig: options.tsconfig,
+      include: options.include,
+      format: options.format,
+      verbose: options.verbose,
+      routerFactory: options.routerFactory,
+      routerIdentifierPattern: options.routerIdentifierPattern,
+    });
+  });
+
+program
+  .command("analyze2")
+  .description(
+    "Parse APIs using the shared parsers package (deterministic, no heuristics)",
+  )
+  .option("-t, --target <target>", "Parser target: trpc | next-app | auto", "auto")
+  .option("--root <path>", "Project root to scan", process.cwd())
+  .option("--tsconfig <path>", "Path to tsconfig", "tsconfig.json")
+  .option("--include <globs...>", "Glob(s) for source files")
+  .option("--format <format>", "Output format: table | json", "table")
+  .option("-v, --verbose", "Enable verbose logging", false)
+  .option(
+    "--router-factory <names...>",
+    "Router factory identifiers to detect (tRPC only)",
+  )
+  .option(
+    "--router-identifier-pattern <regex>",
+    "Regex to detect router identifiers (tRPC only)",
+  )
+  .action(async (options) => {
+    await analyze2Command({
       target: options.target,
       root: options.root,
       tsconfig: options.tsconfig,

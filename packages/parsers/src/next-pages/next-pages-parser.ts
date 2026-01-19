@@ -71,7 +71,12 @@ const routePathCache = new Map<string, RouteDetectionResult>();
  */
 export async function hasNextPages(): Promise<boolean> {
 	try {
-		const hasNext = await hasWorkspaceDependency(["next"]);
+		const workspaceFolders = vscode.workspace.workspaceFolders;
+		if (!workspaceFolders || workspaceFolders.length === 0) {
+			return false;
+		}
+		const rootDir = workspaceFolders[0].uri.fsPath;
+		const hasNext = hasWorkspaceDependency(rootDir, ["next"]);
 		if (hasNext) {
 			logger.info('Detected Next.js Pages Router project');
 		}
@@ -418,7 +423,7 @@ export async function parseNextPagesRoutes(): Promise<ParsedRoute[]> {
 		const rootDir = workspaceFolders[0].uri.fsPath;
 		const debug = createDebugLogger("next-pages:parser", true);
 
-		const tsconfigPath = await findTsConfig(rootDir);
+		const tsconfigPath = findTsConfig(rootDir);
 		if (!tsconfigPath) {
 			logger.warn('No tsconfig.json found, cannot parse routes without AST');
 			return [];

@@ -50,6 +50,9 @@ importers:
       '@trpc/client':
         specifier: ^11.6.0
         version: 11.8.1(@trpc/server@11.8.1(typescript@5.9.3))(typescript@5.9.3)
+      '@watchapi/parsers':
+        specifier: workspace:*
+        version: link:../parsers
       axios:
         specifier: ^1.7.2
         version: 1.13.2

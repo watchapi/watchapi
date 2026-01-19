@@ -39,6 +39,7 @@
     "README.md"
   ],
   "dependencies": {
+    "@watchapi/parsers": "workspace:*",
     "@trpc/client": "^11.6.0",
     "axios": "^1.7.2",
     "chalk": "^5.3.0",

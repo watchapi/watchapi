@@ -303,17 +303,37 @@ function setupEventListeners(
 }
 
 /**
+ * Get workspace root directory
+ */
+function getWorkspaceRoot(): string | undefined {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders || workspaceFolders.length === 0) {
+        return undefined;
+    }
+    return workspaceFolders[0].uri.fsPath;
+}
+
+/**
  * Check and log supported project types
  */
 async function checkProjectType(): Promise<void> {
-    const [hasNext, hasTrpc, hasNest] = await Promise.all([
-        hasNextApp(),
+    const rootDir = getWorkspaceRoot();
+    if (!rootDir) {
+        logger.info("No workspace folder found");
+        return;
+    }
+
+    // Refactored parsers (synchronous, require rootDir)
+    const hasNext = hasNextApp(rootDir);
+    const hasTrpc = hasTRPC(rootDir);
+
+    // VSCode-dependent parsers (async, no rootDir needed)
+    const [hasPages, hasNest] = await Promise.all([
         hasNextPages(),
-        hasTRPC(),
         hasNestJs(),
     ]);
 
-    const canUpload = hasNext || hasTrpc || hasNest;
+    const canUpload = hasNext || hasPages || hasTrpc || hasNest;
 
     await vscode.commands.executeCommand(
         "setContext",
@@ -323,7 +343,8 @@ async function checkProjectType(): Promise<void> {
 
     if (canUpload) {
         const types: string[] = [];
-        if (hasNext) types.push("Next.js");
+        if (hasNext) types.push("Next.js App Router");
+        if (hasPages) types.push("Next.js Pages Router");
         if (hasTrpc) types.push("tRPC");
         if (hasNest) types.push("NestJS");
 
