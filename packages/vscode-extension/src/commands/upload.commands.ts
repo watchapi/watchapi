@@ -6,10 +6,7 @@
 import * as vscode from "vscode";
 import { COMMANDS, logger } from "@/shared";
 import { wrapCommandWithRefresh } from "./command-wrapper";
-import {
-    detectAndParseRoutes,
-    hasAnyProjectType,
-} from "@watchapi/parsers";
+import { detectAndParseRoutes, hasAnyProjectType } from "@watchapi/parsers";
 import type { UploadModal } from "@/ui";
 import type { CollectionsTreeProvider } from "@/collections";
 
@@ -50,7 +47,7 @@ export function registerUploadCommands(
 
                     if (!hasAnyProjectType(result.detected)) {
                         vscode.window.showWarningMessage(
-                            "No supported project type detected. This feature requires Next.js, tRPC, or NestJS.",
+                            "No supported project type detected. This feature requires Next.js, tRPC, NestJS, or Payload CMS.",
                         );
                         return;
                     }

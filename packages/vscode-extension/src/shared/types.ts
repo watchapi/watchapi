@@ -143,7 +143,7 @@ export interface ParsedRoute {
     method: HttpMethod;
     filePath: string;
     handlerName?: string; // For generating stable externalId
-    type: "nextjs-app" | "nextjs-page" | "trpc" | "nestjs";
+    type: "nextjs-app" | "nextjs-page" | "trpc" | "nestjs" | "payload-cms";
     headers?: Record<string, string>;
     query?: Record<string, string>;
     body?: string;

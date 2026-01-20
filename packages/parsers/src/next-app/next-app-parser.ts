@@ -99,6 +99,21 @@ function isAppRouterFile(filePath: string): boolean {
 }
 
 /**
+ * Detect if file is a Payload CMS internal route
+ * Payload CMS 3.x uses Next.js catch-all routes in (payload) route group
+ */
+function isPayloadCMSRoute(filePath: string): boolean {
+	const normalized = filePath.replace(/\\/g, '/');
+	// Match (payload) route group or any route with [...slug] that's in a payload-related path
+	return (
+		normalized.includes('/(payload)/') ||
+		normalized.includes('/app/(payload)') ||
+		// Also skip generic Payload admin routes
+		(normalized.includes('/admin/') && normalized.includes('[[...segments]]'))
+	);
+}
+
+/**
  * Extract route path from file path
  */
 function extractRoutePath(
@@ -399,6 +414,12 @@ export async function parseNextAppRoutes(rootDir: string, options?: ParserOption
 
 			if (isTRPCHandler(file)) {
 				debug(`Skipping tRPC handler: ${path.relative(rootDir, filePath)}`);
+				continue;
+			}
+
+			// Skip Payload CMS internal routes (they use catch-all handlers)
+			if (isPayloadCMSRoute(filePath)) {
+				debug(`Skipping Payload CMS route: ${path.relative(rootDir, filePath)}`);
 				continue;
 			}
 

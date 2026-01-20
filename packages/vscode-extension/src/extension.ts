@@ -331,6 +331,7 @@ async function checkProjectType(): Promise<void> {
         if (detected.nextPages) types.push("Next.js (Pages router)");
         if (detected.trpc) types.push("tRPC");
         if (detected.nestjs) types.push("NestJS");
+        if (detected.payloadCMS) types.push("Payload CMS");
 
         logger.info(`Detected project types: ${types.join(", ")}`);
     } else {

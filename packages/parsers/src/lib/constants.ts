@@ -9,6 +9,7 @@ export const FILE_PATTERNS = {
 	TRPC_ROUTERS: "**/*.router.{ts,js}",
 	TRPC_SERVER: "**/server/trpc.{ts,js}",
 	NESTJS_CONTROLLERS: "**/*.controller.{ts,js}",
+	PAYLOAD_CONFIG: "**/payload.config.{ts,js}",
 } as const;
 
 // HTTP Methods
