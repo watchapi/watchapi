@@ -2,7 +2,7 @@
     "name": "watchapi-client",
     "displayName": "WatchAPI - Code-Synced API Client for Next.js, NestJS & tRPC",
     "description": "Auto-sync API requests directly from your backend code. Built for Next.js, NestJS, and tRPC - no manual setup, no drift.",
-    "version": "0.2.8",
+    "version": "0.2.9",
     "icon": "assets/marketplace-logo.png",
     "publisher": "watchapi",
     "engines": {
