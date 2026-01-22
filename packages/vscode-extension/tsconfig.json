@@ -1,24 +1,24 @@
 {
-  "compilerOptions": {
-    "module": "CommonJS",
-    "target": "ES2022",
-    "outDir": "out",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "sourceMap": true,
-    "rootDir": "src",
-    "strict": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUnusedParameters": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
-  },
-  "include": ["src/**/*"]
+    "compilerOptions": {
+        "module": "NodeNext",
+        "target": "ES2022",
+        "outDir": "out",
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "sourceMap": true,
+        "rootDir": "src",
+        "strict": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUnusedParameters": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "moduleResolution": "NodeNext",
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["src/*"]
+        }
+    },
+    "include": ["src/**/*"]
 }
