@@ -50,6 +50,34 @@
             "include": "#comments"
         },
         {
+            "comment": "2xx Success response line",
+            "match": "(2\\d{2}\\s+[^•]+)(•\\s*\\d+(?:\\.\\d+)?\\s*ms\\s*•\\s*\\d+(?:\\.\\d+)?\\s*(?:KB|MB|B))",
+            "captures": {
+                "1": { "name": "entity.name.function.http" }
+            }
+        },
+        {
+            "comment": "3xx Redirect response line",
+            "match": "(3\\d{2}\\s+[^•]+)(•\\s*\\d+(?:\\.\\d+)?\\s*ms\\s*•\\s*\\d+(?:\\.\\d+)?\\s*(?:KB|MB|B))",
+            "captures": {
+                "1": { "name": "constant.language.http" }
+            }
+        },
+        {
+            "comment": "4xx Client Error response line",
+            "match": "(4\\d{2}\\s+[^•]+)(•\\s*\\d+(?:\\.\\d+)?\\s*ms\\s*•\\s*\\d+(?:\\.\\d+)?\\s*(?:KB|MB|B))",
+            "captures": {
+                "1": { "name": "variable.language.http" }
+            }
+        },
+        {
+            "comment": "5xx Server Error response line",
+            "match": "(5\\d{2}\\s+[^•]+)(•\\s*\\d+(?:\\.\\d+)?\\s*ms\\s*•\\s*\\d+(?:\\.\\d+)?\\s*(?:KB|MB|B))",
+            "captures": {
+                "1": { "name": "invalid.illegal.http" }
+            }
+        },
+        {
             "captures": {
                 "1": {
                     "name": "keyword.other.http"
@@ -120,9 +148,6 @@
         },
         {
             "include": "#request-line"
-        },
-        {
-            "include": "#response-line"
         },
         {
             "include": "#variable"
@@ -303,23 +328,89 @@
             "name": "http.requestline"
         },
         "response-line": {
+            "patterns": [
+                {
+                    "comment": "2xx Success - green",
+                    "match": "^(2[0-9][0-9])\\s+(.*)$",
+                    "captures": {
+                        "1": {
+                            "name": "string.http.status.success"
+                        },
+                        "2": {
+                            "name": "string.http.status.success"
+                        }
+                    },
+                    "name": "http.responseLine.success"
+                },
+                {
+                    "comment": "3xx Redirect - blue",
+                    "match": "^(3[0-9][0-9])\\s+(.*)$",
+                    "captures": {
+                        "1": {
+                            "name": "markup.changed.http.status.redirect"
+                        },
+                        "2": {
+                            "name": "markup.changed.http.status.redirect"
+                        }
+                    },
+                    "name": "http.responseLine.redirect"
+                },
+                {
+                    "comment": "4xx Client Error - orange/yellow",
+                    "match": "^(4[0-9][0-9])\\s+(.*)$",
+                    "captures": {
+                        "1": {
+                            "name": "markup.deleted.http.status.clientError"
+                        },
+                        "2": {
+                            "name": "markup.deleted.http.status.clientError"
+                        }
+                    },
+                    "name": "http.responseLine.clientError"
+                },
+                {
+                    "comment": "5xx Server Error - red",
+                    "match": "^(5[0-9][0-9])\\s+(.*)$",
+                    "captures": {
+                        "1": {
+                            "name": "invalid.illegal.http.status.serverError"
+                        },
+                        "2": {
+                            "name": "invalid.illegal.http.status.serverError"
+                        }
+                    },
+                    "name": "http.responseLine.serverError"
+                },
+                {
+                    "comment": "HTTP/x.x format for standard responses",
+                    "match": "(?i)^\\s*(HTTP\\/\\S+)\\s+([1-5][0-9][0-9])\\s+(.*)$",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.other.http"
+                        },
+                        "2": {
+                            "name": "constant.numeric.http"
+                        },
+                        "3": {
+                            "name": "string.other.http"
+                        }
+                    },
+                    "name": "http.responseLine"
+                }
+            ]
+        },
+        "response-metadata": {
+            "comment": "Response timing and size metadata",
+            "match": "^(\\d+(?:\\.\\d+)?\\s*ms)\\s+(\\d+(?:\\.\\d+)?\\s*(?:KB|MB|B))$",
             "captures": {
                 "1": {
-                    "patterns": [
-                        {
-                            "include": "#protocol"
-                        }
-                    ]
+                    "name": "comment.http.timing"
                 },
                 "2": {
-                    "name": "constant.numeric.http"
-                },
-                "3": {
-                    "name": "string.other.http"
+                    "name": "comment.http.size"
                 }
             },
-            "match": "(?i)^\\s*(HTTP\\/\\S+)\\s([1-5][0-9][0-9])\\s(.*)$",
-            "name": "http.responseLine"
+            "name": "http.responseMetadata"
         },
         "protocol": {
             "patterns": [

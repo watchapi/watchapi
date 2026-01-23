@@ -293,6 +293,36 @@
                     "order": 3
                 }
             }
+        },
+        "configurationDefaults": {
+            "editor.tokenColorCustomizations": {
+                "textMateRules": [
+                    {
+                        "scope": "entity.name.function.http",
+                        "settings": {
+                            "foreground": "#4EC9B0"
+                        }
+                    },
+                    {
+                        "scope": "constant.language.http",
+                        "settings": {
+                            "foreground": "#569CD6"
+                        }
+                    },
+                    {
+                        "scope": "variable.language.http",
+                        "settings": {
+                            "foreground": "#CE9178"
+                        }
+                    },
+                    {
+                        "scope": "invalid.illegal.http",
+                        "settings": {
+                            "foreground": "#F44747"
+                        }
+                    }
+                ]
+            }
         }
     },
     "scripts": {
