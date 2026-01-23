@@ -15,8 +15,7 @@ export async function showResponsePanel(
     const responseUri = responseProvider.getUri();
     let document = currentEditor?.document;
 
-    const timing = response.timingPhases.total ?? 0;
-    responseProvider.update(content, timing);
+    responseProvider.update(content);
 
     if (
         !document ||
@@ -39,7 +38,15 @@ function formatResponseDocument(
     _: ApiEndpoint,
     response: HttpResponse,
 ): string {
-    const statusLine = `HTTP/${response.httpVersion} ${response.statusCode} ${response.statusMessage}`;
+    const timing = response.timingPhases?.total ?? 0;
+    const sizeKb = response.bodySizeInBytes / 1024;
+
+    const sizeLabel =
+        sizeKb < 1024
+            ? `${sizeKb.toFixed(2)} KB`
+            : `${(sizeKb / 1024).toFixed(2)} MB`;
+
+    const statusLine = `${response.statusCode} ${response.statusMessage} • ${timing} ms • ${sizeLabel}`;
 
     const headerLines = formatHeaders(response.headers).trim();
 
