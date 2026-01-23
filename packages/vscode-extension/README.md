@@ -46,6 +46,69 @@
 
 Works locally by default. Sign in optional (enables team features).
 
+## HTTP File Syntax
+
+WatchAPI uses `.http` files compatible with REST Client. Full syntax reference:
+
+### Basic Request
+
+```http
+GET https://api.example.com/users
+Authorization: Bearer {{token}}
+```
+
+### Request with Body
+
+```http
+POST https://api.example.com/users
+Content-Type: application/json
+
+{
+  "name": "John",
+  "email": "john@example.com"
+}
+```
+
+### File Variables
+
+Define variables at the top of your `.http` file:
+
+```http
+@baseUrl = https://api.example.com
+@token = my-secret-token
+
+GET {{baseUrl}}/users
+Authorization: Bearer {{token}}
+```
+
+### Environment Variables
+
+Create `rest-client.env.json` in your workspace:
+
+```json
+{
+    "local": {
+        "baseUrl": "http://localhost:3000",
+        "token": "dev-token"
+    },
+    "production": {
+        "baseUrl": "https://api.example.com",
+        "token": "prod-token"
+    }
+}
+```
+
+Use variables with `{{variableName}}` syntax.
+
+### System Variables
+
+| Variable                 | Description              | Example                   |
+| ------------------------ | ------------------------ | ------------------------- |
+| `{{$timestamp}}`         | Unix timestamp (seconds) | `1737550800`              |
+| `{{$guid}}`              | Random UUID v4           | `f47ac10b-58cc...`        |
+| `{{$randomInt min max}}` | Random integer           | `{{$randomInt 1 100}}`    |
+| `{{$processEnv VAR}}`    | Environment variable     | `{{$processEnv API_KEY}}` |
+
 ## Comparison
 
 | Feature                    | WatchAPI | Postman | Thunder Client | REST Client |

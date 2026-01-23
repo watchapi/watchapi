@@ -45,6 +45,26 @@
     ],
     "main": "./dist/extension.js",
     "contributes": {
+        "languages": [
+            {
+                "id": "http",
+                "extensions": [
+                    ".http",
+                    ".rest"
+                ],
+                "aliases": [
+                    "HTTP",
+                    "http"
+                ]
+            }
+        ],
+        "grammars": [
+            {
+                "language": "http",
+                "scopeName": "source.http",
+                "path": "./syntaxes/http.tmLanguage.json"
+            }
+        ],
         "keybindings": [
             {
                 "command": "watchapi.deleteEndpoint",
@@ -141,6 +161,11 @@
                 "title": "WatchAPI: Sync from Code",
                 "icon": "$(sync)",
                 "when": "watchapi.canUpload"
+            },
+            {
+                "command": "watchapi.executeRequest",
+                "title": "Execute Request",
+                "icon": "$(play)"
             }
         ],
         "viewsWelcome": [
@@ -218,6 +243,11 @@
                     "group": "inline"
                 },
                 {
+                    "command": "watchapi.executeRequest",
+                    "when": "view == watchapi.collections && viewItem == endpoint",
+                    "group": "inline"
+                },
+                {
                     "command": "watchapi.deleteEndpoint",
                     "when": "view == watchapi.collections && (viewItem == endpoint || !viewItem)",
                     "group": "navigation@99"
@@ -263,6 +293,36 @@
                     "order": 3
                 }
             }
+        },
+        "configurationDefaults": {
+            "editor.tokenColorCustomizations": {
+                "textMateRules": [
+                    {
+                        "scope": "entity.name.function.http",
+                        "settings": {
+                            "foreground": "#4EC9B0"
+                        }
+                    },
+                    {
+                        "scope": "constant.language.http",
+                        "settings": {
+                            "foreground": "#569CD6"
+                        }
+                    },
+                    {
+                        "scope": "variable.language.http",
+                        "settings": {
+                            "foreground": "#CE9178"
+                        }
+                    },
+                    {
+                        "scope": "invalid.illegal.http",
+                        "settings": {
+                            "foreground": "#F44747"
+                        }
+                    }
+                ]
+            }
         }
     },
     "scripts": {
@@ -284,10 +344,12 @@
         "test": "vscode-test"
     },
     "dependencies": {
+        "@szmarczak/http-timer": "^5.0.1",
         "@trpc/client": "^11.0.0",
         "@vscode/test-cli": "^0.0.12",
         "@watchapi/parsers": "workspace:*",
         "flat": "^6.0.1",
+        "got": "^14.6.6",
         "ts-morph": "^27.0.2",
         "zod": "^3.22.4"
     },

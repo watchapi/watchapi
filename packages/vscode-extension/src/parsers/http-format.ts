@@ -3,7 +3,7 @@
  * Compatible with REST Client extension format
  */
 
-import { flatten } from "flat";
+import * as crypto from "crypto";
 import {
     ApiEndpoint,
     CreateApiEndpointInput,
@@ -48,27 +48,10 @@ export function parseHttpFile(
                 continue;
             }
 
-            // Skip regular comments
-            if (line.startsWith("#") && !line.startsWith("//")) {
-                continue;
-            }
-
-            if (line.startsWith("//")) {
-                continue;
-            }
-
             // Extract name from // comment (format: // METHOD path - Name)
-            if (line.startsWith("//")) {
-                const commentContent = line.replace(/^\/\/\s*/, "").trim();
-
-                // Try to extract name from format: "METHOD path - Name"
-                // The name is everything after the last " - "
-                const dashIndex = commentContent.lastIndexOf(" - ");
-                if (dashIndex !== -1) {
-                    name = commentContent.substring(dashIndex + 3).trim();
-                } else {
-                    // Fallback: use the entire comment as name
-                    name = commentContent;
+            if (line.startsWith("//") && !line.startsWith("// Environments")) {
+                if (!name) {
+                    name = line.replace(/^\/\/\s*/, "").trim();
                 }
                 continue;
             }
@@ -92,33 +75,17 @@ export function parseHttpFile(
                 continue;
             }
 
-            // Collect multiline URL (until headers start)
+            // Collect multiline URL until headers begin
             if (collectingUrl) {
-                // Headers start → stop URL collection
-                if (/^[A-Za-z-]+:\s*/.test(line)) {
+                if (isHeaderLine(line)) {
                     collectingUrl = false;
                     inHeaders = true;
 
-                    const fullUrl = urlLines
-                        .join("")
-                        .replace(/\s+/g, "") // remove line breaks + indentation
-                        .trim();
+                    const normalizedUrl = normalizeUrlLines(urlLines);
+                    const { path, query } = parseUrlAndQuery(normalizedUrl);
 
-                    // Extract query params from URL
-                    const [basePath, queryString] = fullUrl.split("?");
-                    requestPath = basePath;
-
-                    if (queryString) {
-                        // Parse query string into params object
-                        queryString.split("&").forEach((param) => {
-                            const [key, value] = param.split("=");
-                            if (key) {
-                                queryParams[decodeURIComponent(key)] = value
-                                    ? decodeURIComponent(value)
-                                    : "";
-                            }
-                        });
-                    }
+                    requestPath = path;
+                    Object.assign(queryParams, query);
 
                     // fall through to header parsing
                 } else {
@@ -175,36 +142,13 @@ export function parseHttpFile(
  */
 export function constructHttpFile(
     endpoint: ApiEndpoint,
-    environment?: Record<string, string>,
+    _environment?: Record<string, string>,
     options?: { includeAuthorizationHeader?: boolean },
 ): string {
     try {
         logger.debug(`Constructing .http file for endpoint: ${endpoint.id}`);
 
         const parts: string[] = [];
-
-        // Add environment variables section if environment provided
-        if (environment?.local) {
-            parts.push("// Environments – rest-client.env.json");
-
-            const flatEnv = flatten(environment.local, {
-                delimiter: ".",
-                safe: true,
-            }) as Record<string, unknown>;
-
-            for (const [key, value] of Object.entries(flatEnv)) {
-                if (value !== undefined && value !== null && value !== "") {
-                    const formatted =
-                        typeof value === "string" && value.includes(" ")
-                            ? `"${value}"`
-                            : value;
-
-                    parts.push(`@${key} = ${formatted}`);
-                }
-            }
-
-            parts.push("");
-        }
 
         // Add endpoint name as comment
         parts.push(`// ${endpoint.name}`);
@@ -283,26 +227,61 @@ export function constructHttpFile(
 
 /**
  * Replace environment variables in URL and headers
+ * Supports: environment variables, file variables, and system variables
  */
 export function replaceEnvironmentVariables(
     text: string,
     environment?: Environment,
+    fileVariables?: Record<string, string>,
 ): string {
-    if (!environment || environment.variables.length === 0) {
-        return text;
-    }
-
     let result = text;
 
-    for (const variable of environment.variables) {
-        if (variable.enabled) {
-            // Replace {{variableName}} format
-            const regex = new RegExp(`{{${variable.key}}}`, "g");
-            result = result.replace(regex, variable.value);
+    // Replace system variables first (they take precedence)
+    result = replaceSystemVariables(result);
+
+    // Replace file variables (defined with @varName = value)
+    if (fileVariables) {
+        for (const [key, value] of Object.entries(fileVariables)) {
+            const regex = new RegExp(`{{\\s*${escapeRegex(key)}\\s*}}`, "g");
+            result = result.replace(regex, value);
+        }
+    }
+
+    // Replace environment variables
+    if (environment && environment.variables.length > 0) {
+        for (const variable of environment.variables) {
+            if (variable.enabled) {
+                const regex = new RegExp(
+                    `{{\\s*${escapeRegex(variable.key)}\\s*}}`,
+                    "g",
+                );
+                result = result.replace(regex, variable.value);
+            }
         }
     }
 
     return result;
+}
+
+/**
+ * Replace system variables: $timestamp, $guid, $randomInt, $processEnv
+ */
+function replaceSystemVariables(text: string): string {
+    return text
+        .replace(/\{\{\s*\$timestamp\s*\}\}/g, () =>
+            Math.floor(Date.now() / 1000).toString(),
+        )
+        .replace(/\{\{\s*\$guid\s*\}\}/g, () => crypto.randomUUID())
+        .replace(/\{\{\s*\$randomInt\s+(-?\d+)\s+(-?\d+)\s*\}\}/g, (_, min, max) =>
+            (Math.floor(Math.random() * (parseInt(max) - parseInt(min))) + parseInt(min)).toString(),
+        )
+        .replace(/\{\{\s*\$processEnv\s+(\w+)\s*\}\}/g, (_, envVar) =>
+            process.env[envVar] ?? "",
+        );
+}
+
+function escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 /**
@@ -320,6 +299,22 @@ export function extractVariableReferences(text: string): string[] {
     return [...new Set(matches)]; // Remove duplicates
 }
 
+/**
+ * Extract file variables from .http file content
+ * File variables are defined with @varName = value
+ */
+export function extractFileVariables(content: string): Record<string, string> {
+    const variables: Record<string, string> = {};
+    const regex = /^\s*@([^\s=]+)\s*=\s*(.*?)\s*$/gm;
+    let match;
+
+    while ((match = regex.exec(content)) !== null) {
+        variables[match[1]] = match[2];
+    }
+
+    return variables;
+}
+
 function formatUrlMultiline(url: string): string {
     const [base, query] = url.split("?", 2);
 
@@ -331,4 +326,33 @@ function formatUrlMultiline(url: string): string {
         base,
         ...params.map((p, i) => `    ${i === 0 ? "?" : "&"}${p}`),
     ].join("\n");
+}
+
+function isHeaderLine(line: string): boolean {
+    return /^[A-Za-z-]+:\s*/.test(line);
+}
+
+function normalizeUrlLines(lines: string[]): string {
+    return lines.join("").replace(/\s+/g, "").trim();
+}
+
+function parseUrlAndQuery(url: string): {
+    path: string;
+    query: Record<string, string>;
+} {
+    const [path, queryString] = url.split("?", 2);
+    const query: Record<string, string> = {};
+
+    if (queryString) {
+        for (const part of queryString.split("&")) {
+            const [key, value] = part.split("=", 2);
+            if (key) {
+                query[decodeURIComponent(key)] = value
+                    ? decodeURIComponent(value)
+                    : "";
+            }
+        }
+    }
+
+    return { path, query };
 }

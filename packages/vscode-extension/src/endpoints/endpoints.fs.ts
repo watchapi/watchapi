@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { EndpointsService } from "@/endpoints/endpoints.service";
 import { constructHttpFile, parseHttpFile } from "@/parsers";
-import { ENV_FILE_NAME } from "@/shared";
+import { readRestClientEnvFile } from "@/environments";
 
 export class EndpointsFileSystemProvider implements vscode.FileSystemProvider {
     private readonly emitter = new vscode.EventEmitter<
@@ -35,29 +35,13 @@ export class EndpointsFileSystemProvider implements vscode.FileSystemProvider {
 
     rename(): void {}
 
-    async readRestClientEnv(): Promise<Record<string, string>> {
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        if (!workspaceFolder) return {};
-
-        const envUri = vscode.Uri.joinPath(workspaceFolder.uri, ENV_FILE_NAME);
-
-        try {
-            const bytes = await vscode.workspace.fs.readFile(envUri);
-            const text = Buffer.from(bytes).toString("utf8");
-            return JSON.parse(text);
-        } catch {
-            // File missing or invalid JSON → silently ignore
-            return {};
-        }
-    }
-
     // ---- IMPORTANT PARTS ----
 
     async readFile(uri: vscode.Uri): Promise<Uint8Array> {
         const endpointId = this.getEndpointId(uri);
         const endpoint = await this.endpointsService.getById(endpointId);
 
-        const env = await this.readRestClientEnv();
+        const env = await readRestClientEnvFile();
 
         // Read setting for Authorization header
         const config = vscode.workspace.getConfiguration("watchapi");

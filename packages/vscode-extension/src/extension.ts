@@ -15,11 +15,7 @@ import {
 import { EndpointsService } from "@/endpoints";
 import { CacheService, SyncService } from "@/sync";
 import { StatusBarManager, UploadModal } from "@/ui";
-import {
-    detectRoutes,
-    hasAnyProjectType,
-} from "@watchapi/parsers";
-import { REST_CLIENT } from "@/shared";
+import { detectRoutes, hasAnyProjectType } from "@watchapi/parsers";
 import { EndpointsFileSystemProvider } from "./endpoints/endpoints.fs";
 import { openEndpointEditor } from "./endpoints/endpoints.editor";
 import { OrganizationService } from "@/organizations";
@@ -33,6 +29,13 @@ import {
     registerUploadCommands,
     registerExportCommands,
 } from "@/commands";
+import { ExecutionButton } from "./ui/execute-request/execution-button";
+import { HttpFileCodeLensProvider } from "./ui/execute-request/code-lens-provider";
+import {
+    getResponseDocumentProvider,
+    RESPONSE_DOCUMENT_SCHEME,
+} from "./ui/execute-request/response-document-provider";
+import { HttpVariableHoverProvider } from "./ui/execute-request/variable-hover-provider";
 
 /**
  * Extension activation
@@ -48,7 +51,7 @@ export async function activate(
         const authService = new AuthService(context);
         const organizationService = new OrganizationService(context);
         const localStorage = new (
-            await import("@/storage")
+            await import("../src/storage/index.js")
         ).LocalStorageService(context);
 
         const collectionsService = new CollectionsService();
@@ -118,8 +121,6 @@ export async function activate(
             if (item instanceof EndpointNode) {
                 try {
                     await openEndpointEditor(item.endpoint);
-                    // Show REST Client recommendation if not installed
-                    checkRestClientExtension();
                 } catch (error) {
                     vscode.window.showErrorMessage(
                         `Failed to open endpoint: ${error}`,
@@ -225,6 +226,27 @@ function registerCommands(
             // Implemented in StatusBarManager
         }),
     );
+
+    const codeLensProvider = new HttpFileCodeLensProvider();
+    const hoverProvider = new HttpVariableHoverProvider();
+
+    const selectors: vscode.DocumentSelector = [{ language: "http" }];
+
+    context.subscriptions.push(
+        vscode.languages.registerCodeLensProvider(selectors, codeLensProvider),
+        vscode.languages.registerHoverProvider(selectors, hoverProvider),
+    );
+
+    const responseProvider = getResponseDocumentProvider();
+    context.subscriptions.push(
+        vscode.workspace.registerTextDocumentContentProvider(
+            RESPONSE_DOCUMENT_SCHEME,
+            responseProvider,
+        ),
+    );
+
+    const executionButton = new ExecutionButton();
+    executionButton.registerCommand(context);
 }
 
 /**
@@ -338,36 +360,6 @@ async function checkProjectType(): Promise<void> {
         logger.info(
             "No supported project types detected (upload feature will be disabled)",
         );
-    }
-}
-
-/**
- * Check if REST Client extension is installed and show info message if not
- * Only shows once per session to avoid annoying the user
- */
-let hasShownRestClientInfo = false;
-function checkRestClientExtension(): void {
-    if (hasShownRestClientInfo) {
-        return; // Only show once per session
-    }
-
-    const extension = vscode.extensions.getExtension(REST_CLIENT.EXTENSION_ID);
-    if (!extension) {
-        hasShownRestClientInfo = true;
-        vscode.window
-            .showInformationMessage(
-                `${REST_CLIENT.NAME} is required to run API requests.`,
-                `Install ${REST_CLIENT.NAME}`,
-                "Cancel",
-            )
-            .then((action) => {
-                if (action === `Install ${REST_CLIENT.NAME}`) {
-                    vscode.commands.executeCommand(
-                        "workbench.extensions.installExtension",
-                        REST_CLIENT.EXTENSION_ID,
-                    );
-                }
-            });
     }
 }
 

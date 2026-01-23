@@ -6,7 +6,8 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs/promises";
-import { COMMANDS, ENV_FILE_NAME } from "@/shared/constants";
+import { COMMANDS } from "@/shared/constants";
+import { readRestClientEnvFile } from "@/environments";
 import { wrapCommand } from "./command-wrapper";
 import type { CollectionsService } from "@/collections";
 import type { EndpointsService } from "@/endpoints";
@@ -45,22 +46,6 @@ export function registerExportCommands(
 /**
  * Read REST client environment from workspace
  */
-async function readRestClientEnv(): Promise<Record<string, string>> {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) return {};
-
-    const envUri = vscode.Uri.joinPath(workspaceFolder.uri, ENV_FILE_NAME);
-
-    try {
-        const bytes = await vscode.workspace.fs.readFile(envUri);
-        const text = Buffer.from(bytes).toString("utf8");
-        return JSON.parse(text);
-    } catch {
-        // File missing or invalid JSON → silently ignore
-        return {};
-    }
-}
-
 /**
  * Export all collections to .http files
  */
@@ -87,7 +72,7 @@ async function exportCollections(
     }
 
     // Read environment and settings
-    const env = await readRestClientEnv();
+    const env = await readRestClientEnvFile(workspaceFolder);
     const config = vscode.workspace.getConfiguration("watchapi");
     const includeAuthorizationHeader = config.get<boolean>(
         "includeAuthorizationHeader",
