@@ -45,6 +45,12 @@ export interface UpdateCollectionInput {
     description?: string;
 }
 
+// Set directive for extracting response values
+export interface SetDirective {
+    varName: string;
+    responsePath: string;
+}
+
 // API Endpoint types
 export interface ApiEndpoint {
     id: string;
@@ -63,6 +69,9 @@ export interface ApiEndpoint {
     headersOverrides?: Record<string, string>;
     querySchema?: Record<string, string>;
     queryOverrides?: Record<string, string>;
+    // Set directives for extracting response values (@set varName = response.path)
+    setDirectives?: SetDirective[];
+    setDirectivesOverrides?: SetDirective[];
     // Deprecated fields (kept for backwards compatibility)
     headers?: Record<string, string>;
     body?: string;
@@ -88,6 +97,7 @@ export interface CreateApiEndpointInput {
     headersOverrides?: Record<string, string>;
     querySchema?: Record<string, string>;
     queryOverrides?: Record<string, string>;
+    setDirectivesOverrides?: SetDirective[];
     // Deprecated fields (kept for backwards compatibility)
     headers?: Record<string, string>;
     body?: string;
@@ -110,6 +120,7 @@ export interface UpdateApiEndpointInput {
     headersOverrides?: Record<string, string>;
     querySchema?: Record<string, string>;
     queryOverrides?: Record<string, string>;
+    setDirectivesOverrides?: SetDirective[];
     // Deprecated fields (kept for backwards compatibility)
     headers?: Record<string, string>;
     body?: string;

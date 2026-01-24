@@ -11,6 +11,7 @@ import {
     HttpMethod,
     logger,
     ParserError,
+    SetDirective,
 } from "@/shared";
 import { humanizeRouteName } from "@/endpoints/endpoints.editor";
 
@@ -29,6 +30,7 @@ export function parseHttpFile(
         let name = "";
         const headers: Record<string, string> = {};
         const queryParams: Record<string, string> = {};
+        const setDirectives: SetDirective[] = [];
         let body = "";
         let inBody = false;
         let inHeaders = false;
@@ -56,7 +58,17 @@ export function parseHttpFile(
                 continue;
             }
 
-            // Skip environment variables section
+            // Extract @set directives (@set varName = response.path.to.value)
+            const setMatch = line.match(/^@set\s+(\w+)\s*=\s*(.+)$/);
+            if (setMatch) {
+                setDirectives.push({
+                    varName: setMatch[1],
+                    responsePath: setMatch[2].trim(),
+                });
+                continue;
+            }
+
+            // Skip other @ directives (file variables)
             if (line.startsWith("@")) {
                 continue;
             }
@@ -127,6 +139,8 @@ export function parseHttpFile(
             queryOverrides:
                 Object.keys(queryParams).length > 0 ? queryParams : undefined,
             bodyOverrides: body.trim() || undefined,
+            setDirectivesOverrides:
+                setDirectives.length > 0 ? setDirectives : undefined,
         };
 
         logger.debug("Parsed endpoint from .http file", endpoint);
@@ -211,6 +225,17 @@ export function constructHttpFile(
         ) {
             parts.push(""); // Empty line before body
             parts.push(effectiveBody);
+        }
+
+        // Add @set directives at the end if present
+        if (
+            endpoint.setDirectivesOverrides &&
+            endpoint.setDirectivesOverrides.length > 0
+        ) {
+            parts.push(""); // Empty line before @set directives
+            for (const directive of endpoint.setDirectivesOverrides) {
+                parts.push(`@set ${directive.varName} = ${directive.responsePath}`);
+            }
         }
 
         const content = parts.join("\n");
@@ -355,4 +380,23 @@ function parseUrlAndQuery(url: string): {
     }
 
     return { path, query };
+}
+
+/**
+ * Extract @set directives from .http file content
+ * Format: @set varName = response.path.to.value
+ */
+export function extractSetDirectives(content: string): SetDirective[] {
+    const directives: SetDirective[] = [];
+    const regex = /^\s*@set\s+(\w+)\s*=\s*(.+?)\s*$/gm;
+    let match;
+
+    while ((match = regex.exec(content)) !== null) {
+        directives.push({
+            varName: match[1],
+            responsePath: match[2],
+        });
+    }
+
+    return directives;
 }

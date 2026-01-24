@@ -1,19 +1,35 @@
 import * as vscode from "vscode";
 import { ApiEndpoint, Environment } from "@/shared";
-import type { EndpointNode } from "@/collections";
 import {
     readRestClientEnvFile,
     resolveEnvironmentFromEnvFile,
 } from "@/environments";
-import { extractFileVariables } from "@/parsers";
+import { extractFileVariables, extractSetDirectives } from "@/parsers";
 import { RequestExecutor, ExecutionContext } from "./request-executor";
 import { showResponsePanel } from "./response-panel";
+import { processSetDirectives } from "./response-variable-handler";
 
 export class ExecutionButton {
     private executor: RequestExecutor;
 
     constructor() {
         this.executor = new RequestExecutor();
+    }
+
+    private get activeEditor(): vscode.TextEditor {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            throw new Error("No active editor found.");
+        }
+        return editor;
+    }
+
+    private get workspaceFolder(): vscode.WorkspaceFolder {
+        const folder = vscode.workspace.workspaceFolders?.[0];
+        if (!folder) {
+            throw new Error("No workspace folder found.");
+        }
+        return folder;
     }
 
     registerCommand(context: vscode.ExtensionContext): void {
@@ -30,9 +46,10 @@ export class ExecutionButton {
     private async executeFromEditor(
         partialEndpoint: Partial<ApiEndpoint>,
     ): Promise<void> {
-        const editor = vscode.window.activeTextEditor;
-        const documentUri = editor?.document.uri;
-        const documentContent = editor?.document.getText();
+        const editor = this.activeEditor;
+        const documentContent = editor.document.getText();
+
+        const setDirectives = extractSetDirectives(documentContent);
 
         const endpoint: ApiEndpoint = {
             id: "temp-" + Date.now(),
@@ -47,6 +64,8 @@ export class ExecutionButton {
             headersOverrides: partialEndpoint.headersOverrides,
             queryOverrides: partialEndpoint.queryOverrides,
             bodyOverrides: partialEndpoint.bodyOverrides,
+            setDirectivesOverrides:
+                setDirectives.length > 0 ? setDirectives : undefined,
             expectedStatus: partialEndpoint.expectedStatus!,
             timeout: partialEndpoint.timeout!,
             interval: partialEndpoint.interval!,
@@ -55,12 +74,13 @@ export class ExecutionButton {
             updatedAt: new Date().toISOString(),
         };
 
-        const environment = await this.loadEnvironment(documentUri);
-        const fileVariables = documentContent
-            ? extractFileVariables(documentContent)
-            : undefined;
+        const environment = await this.loadEnvironment();
+        const fileVariables = extractFileVariables(documentContent);
 
-        await this.executeRequest(endpoint, { environment, fileVariables });
+        await this.executeRequest(endpoint, {
+            environment,
+            fileVariables,
+        });
     }
 
     private async executeRequest(
@@ -76,26 +96,35 @@ export class ExecutionButton {
             async () => {
                 const response = await this.executor.execute(endpoint, context);
                 await showResponsePanel(endpoint, response);
+                const directives = endpoint.setDirectivesOverrides;
+
+                if (!directives?.length) return;
+
+                try {
+                    const extractedVars = await processSetDirectives(
+                        directives,
+                        { body: response.body, headers: response.headers },
+                        this.workspaceFolder,
+                    );
+
+                    if (Object.keys(extractedVars).length) {
+                        vscode.window.showInformationMessage(
+                            `Updated variables: ${Object.keys(extractedVars).join(", ")}`,
+                        );
+                    }
+                } catch (error) {
+                    vscode.window.showWarningMessage(
+                        `Failed to extract response variables: ${error}`,
+                    );
+                }
+
                 this.showStatusMessage(response);
             },
         );
     }
 
-    private normalizeEndpoint(
-        target: ApiEndpoint | EndpointNode,
-    ): ApiEndpoint | undefined {
-        if ((target as EndpointNode).endpoint) {
-            return (target as EndpointNode).endpoint;
-        }
-        return target as ApiEndpoint;
-    }
-
-    private async loadEnvironment(
-        documentUri?: vscode.Uri,
-    ): Promise<Environment | undefined> {
-        const workspaceFolder = documentUri
-            ? vscode.workspace.getWorkspaceFolder(documentUri)
-            : vscode.workspace.workspaceFolders?.[0];
+    private async loadEnvironment(): Promise<Environment | undefined> {
+        const workspaceFolder = this.workspaceFolder;
         const envFile = await readRestClientEnvFile(workspaceFolder);
         return resolveEnvironmentFromEnvFile(envFile);
     }

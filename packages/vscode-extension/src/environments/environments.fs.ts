@@ -140,3 +140,66 @@ export async function ensureEnvFile(): Promise<boolean> {
 
     return await createEnvFile();
 }
+
+/**
+ * Update environment file with new variables in the active environment
+ * @param variables Key-value pairs to update/add
+ * @param workspaceFolder Optional workspace folder, defaults to first workspace
+ * @param environmentName Optional environment name, defaults to "local"
+ */
+export async function updateEnvFileVariables(
+    variables: Record<string, string>,
+    workspaceFolder: vscode.WorkspaceFolder,
+    environmentName?: string,
+): Promise<void> {
+    if (!workspaceFolder) {
+        logger.warn("No workspace folder found, cannot update env file");
+        return;
+    }
+
+    const envUri = vscode.Uri.joinPath(workspaceFolder.uri, ENV_FILE_NAME);
+
+    try {
+        // Read existing env file
+        let envFile: Record<string, Record<string, unknown>> = {};
+        try {
+            const bytes = await vscode.workspace.fs.readFile(envUri);
+            const text = Buffer.from(bytes).toString("utf8");
+            envFile = JSON.parse(text);
+        } catch {
+            // File doesn't exist or is invalid, create default structure
+            envFile = { local: {} };
+        }
+
+        // Determine which environment to update
+        const envName =
+            environmentName ||
+            ("local" in envFile ? "local" : Object.keys(envFile)[0]) ||
+            "local";
+
+        // Ensure environment exists
+        if (!envFile[envName]) {
+            envFile[envName] = {};
+        }
+
+        // Update variables
+        for (const [key, value] of Object.entries(variables)) {
+            envFile[envName][key] = value;
+        }
+
+        // Write back to file
+        const content = JSON.stringify(envFile, null, 2);
+        await vscode.workspace.fs.writeFile(
+            envUri,
+            Buffer.from(content, "utf8"),
+        );
+
+        logger.info(
+            `Updated ${ENV_FILE_NAME} with variables:`,
+            Object.keys(variables),
+        );
+    } catch (error) {
+        logger.error(`Failed to update ${ENV_FILE_NAME}:`, error);
+        throw error;
+    }
+}

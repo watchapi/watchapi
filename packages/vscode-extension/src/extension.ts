@@ -36,6 +36,7 @@ import {
     RESPONSE_DOCUMENT_SCHEME,
 } from "./ui/execute-request/response-document-provider";
 import { HttpVariableHoverProvider } from "./ui/execute-request/variable-hover-provider";
+import { registerSetDirectiveCompletionProvider } from "./ui/execute-request/set-directive-completion-provider";
 
 /**
  * Extension activation
@@ -236,6 +237,9 @@ function registerCommands(
         vscode.languages.registerCodeLensProvider(selectors, codeLensProvider),
         vscode.languages.registerHoverProvider(selectors, hoverProvider),
     );
+
+    // Register @set directive completion provider
+    registerSetDirectiveCompletionProvider(context);
 
     const responseProvider = getResponseDocumentProvider();
     context.subscriptions.push(
