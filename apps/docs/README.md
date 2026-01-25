@@ -1,3 +1,0 @@
-# watchapi-docs
-
-WatchAPI - Docs
