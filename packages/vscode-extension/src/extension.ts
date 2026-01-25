@@ -121,7 +121,11 @@ export async function activate(
             // Endpoint click
             if (item instanceof EndpointNode) {
                 try {
-                    await openEndpointEditor(item.endpoint);
+                    await openEndpointEditor(
+                        item.endpoint,
+                        item.collection?.name,
+                        item.duplicateIndex,
+                    );
                 } catch (error) {
                     vscode.window.showErrorMessage(
                         `Failed to open endpoint: ${error}`,
@@ -215,7 +219,12 @@ function registerCommands(
         treeProvider,
     );
     registerCollectionCommands(context, collectionsService, treeProvider);
-    registerEndpointCommands(context, endpointsService, treeProvider);
+    registerEndpointCommands(
+        context,
+        endpointsService,
+        treeProvider,
+        collectionsService,
+    );
     registerSyncCommands(context, syncService, treeProvider);
     registerNavigationCommands(context);
     registerUploadCommands(context, uploadModal, treeProvider);

@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { EndpointsService } from "@/endpoints/endpoints.service";
 import { constructHttpFile, parseHttpFile } from "@/parsers";
 import { readRestClientEnvFile } from "@/environments";
+import { getEndpointIdFromUri } from "./endpoints.editor";
 
 export class EndpointsFileSystemProvider implements vscode.FileSystemProvider {
     private readonly emitter = new vscode.EventEmitter<
@@ -84,15 +85,15 @@ export class EndpointsFileSystemProvider implements vscode.FileSystemProvider {
     }
 
     private getEndpointId(uri: vscode.Uri): string {
-        // Expected: /endpoints/{id}.http
-        const match = uri.path.match(/^\/endpoints\/([^/]+)\.http$/);
+        // New format: endpoint ID is in query string ?id={uuid}
+        const id = getEndpointIdFromUri(uri);
 
-        if (!match) {
-            throw new vscode.FileSystemError(
-                `Invalid WatchAPI endpoint URI: ${uri.path}`,
-            );
+        if (id) {
+            return id;
         }
 
-        return match[1];
+        throw new vscode.FileSystemError(
+            `Invalid WatchAPI endpoint URI: ${uri.path}`,
+        );
     }
 }

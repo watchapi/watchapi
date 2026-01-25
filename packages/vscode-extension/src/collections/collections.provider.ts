@@ -25,6 +25,7 @@ export class EndpointNode {
   constructor(
     public readonly endpoint: ApiEndpoint,
     public readonly collection?: Collection,
+    public readonly duplicateIndex?: number,
   ) {}
 }
 
@@ -88,11 +89,20 @@ export class CollectionsTreeProvider
         return await this.getCollections();
       }
 
-      // Collection level: return endpoints
+      // Collection level: return endpoints with duplicate indices
       if (element instanceof CollectionNode) {
-        return element.endpoints.map(
-          (endpoint) => new EndpointNode(endpoint, element.collection),
-        );
+        const nameCounts = new Map<string, number>();
+
+        return element.endpoints.map((endpoint) => {
+          const nameKey = endpoint.name.toLowerCase();
+          const count = (nameCounts.get(nameKey) || 0) + 1;
+          nameCounts.set(nameKey, count);
+
+          // Only set duplicateIndex if this is 2nd or later occurrence
+          const duplicateIndex = count > 1 ? count : undefined;
+
+          return new EndpointNode(endpoint, element.collection, duplicateIndex);
+        });
       }
 
       // Endpoint level: no children
@@ -181,7 +191,7 @@ export class CollectionsTreeProvider
     item.command = {
       command: "watchapi.openEndpoint",
       title: "Open Endpoint",
-      arguments: [endpoint],
+      arguments: [endpoint, node.collection?.name, node.duplicateIndex],
     };
 
     return item;
