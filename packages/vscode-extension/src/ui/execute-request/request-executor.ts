@@ -99,7 +99,7 @@ export class RequestExecutor {
         context?: ExecutionContext,
     ): ExecutionRequest {
         const effectiveHeaders: RequestHeaders = {
-            ...(endpoint.headersSchema ?? endpoint.headers ?? {}),
+            ...(endpoint.headersSchema ?? {}),
             ...(endpoint.headersOverrides ?? {}),
         };
 
@@ -108,8 +108,7 @@ export class RequestExecutor {
             ...(endpoint.queryOverrides ?? {}),
         };
 
-        let effectiveBody =
-            endpoint.bodyOverrides ?? endpoint.bodySchema ?? endpoint.body;
+        let effectiveBody = endpoint.bodyOverrides ?? endpoint.bodySchema;
 
         let url = endpoint.requestPath;
 

@@ -66,7 +66,6 @@ export class ExecutionButton {
             bodyOverrides: partialEndpoint.bodyOverrides,
             setDirectivesOverrides:
                 setDirectives.length > 0 ? setDirectives : undefined,
-            expectedStatus: partialEndpoint.expectedStatus!,
             timeout: partialEndpoint.timeout!,
             interval: partialEndpoint.interval!,
             isActive: partialEndpoint.isActive!,

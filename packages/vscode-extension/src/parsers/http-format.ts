@@ -192,11 +192,9 @@ export function constructHttpFile(
 
         parts.push(requestLine);
         // Prepare headers - use layered schema pattern
-        // Use headersOverrides if set (user edits), otherwise fall back to headersSchema (code-inferred) or headers (legacy)
+        // Use headersOverrides if set (user edits), otherwise fall back to headersSchema (code-inferred)
         const effectiveHeaders = {
-            ...(endpoint.headersOverrides ??
-                endpoint.headersSchema ??
-                endpoint.headers),
+            ...(endpoint.headersOverrides ?? endpoint.headersSchema),
         };
         const includeAuth = options?.includeAuthorizationHeader ?? true;
 
@@ -217,8 +215,7 @@ export function constructHttpFile(
 
         // Add body if present (for POST, PUT, PATCH)
         // Use bodyOverrides if set (user edits), otherwise fall back to bodySchema (code-inferred)
-        const effectiveBody =
-            endpoint.bodyOverrides ?? endpoint.bodySchema ?? endpoint.body;
+        const effectiveBody = endpoint.bodyOverrides ?? endpoint.bodySchema;
         if (
             effectiveBody &&
             ["POST", "PUT", "PATCH"].includes(endpoint.method)

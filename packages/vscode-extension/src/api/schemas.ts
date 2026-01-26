@@ -50,10 +50,6 @@ export const createApiEndpointSchema = z.object({
 	headersOverrides: z.record(z.string(), z.string()).optional(),
 	querySchema: z.record(z.string(), z.string()).optional(),
 	queryOverrides: z.record(z.string(), z.string()).optional(),
-	// Legacy fields (kept for backwards compatibility)
-	headers: z.record(z.string(), z.string()).optional(),
-	body: z.string().trim().optional(),
-	expectedStatus: z.number().int().min(100).max(599).default(200),
 	timeout: z
 		.number()
 		.int()
@@ -81,10 +77,6 @@ export const updateApiEndpointSchema = z.object({
 	headersOverrides: z.record(z.string(), z.string()).optional(),
 	querySchema: z.record(z.string(), z.string()).optional(),
 	queryOverrides: z.record(z.string(), z.string()).optional(),
-	// Legacy fields (kept for backwards compatibility)
-	headers: z.record(z.string(), z.string()).optional(),
-	body: z.string().trim().optional(),
-	expectedStatus: z.number().int().min(100).max(599).optional(),
 	timeout: z
 		.number()
 		.int()

@@ -72,10 +72,6 @@ export interface ApiEndpoint {
     // Set directives for extracting response values (@set varName = response.path)
     setDirectives?: SetDirective[];
     setDirectivesOverrides?: SetDirective[];
-    // Deprecated fields (kept for backwards compatibility)
-    headers?: Record<string, string>;
-    body?: string;
-    expectedStatus: number;
     timeout: number;
     interval: number;
     collectionId?: string;
@@ -98,10 +94,6 @@ export interface CreateApiEndpointInput {
     querySchema?: Record<string, string>;
     queryOverrides?: Record<string, string>;
     setDirectivesOverrides?: SetDirective[];
-    // Deprecated fields (kept for backwards compatibility)
-    headers?: Record<string, string>;
-    body?: string;
-    expectedStatus?: number;
     timeout?: number;
     interval?: number;
     collectionId?: string;
@@ -121,10 +113,6 @@ export interface UpdateApiEndpointInput {
     querySchema?: Record<string, string>;
     queryOverrides?: Record<string, string>;
     setDirectivesOverrides?: SetDirective[];
-    // Deprecated fields (kept for backwards compatibility)
-    headers?: Record<string, string>;
-    body?: string;
-    expectedStatus?: number;
     timeout?: number;
     interval?: number;
     isActive?: boolean;
