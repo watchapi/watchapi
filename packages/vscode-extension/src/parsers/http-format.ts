@@ -157,7 +157,10 @@ export function parseHttpFile(
 export function constructHttpFile(
     endpoint: ApiEndpoint,
     _environment?: Record<string, string>,
-    options?: { includeAuthorizationHeader?: boolean },
+    options?: {
+        includeAuthorizationHeader?: boolean;
+        includeDefaultSetDirective?: boolean;
+    },
 ): string {
     try {
         logger.debug(`Constructing .http file for endpoint: ${endpoint.id}`);
@@ -225,13 +228,18 @@ export function constructHttpFile(
         }
 
         // Add @set directives at the end if present
-        if (
-            endpoint.setDirectivesOverrides &&
-            endpoint.setDirectivesOverrides.length > 0
-        ) {
+        // Or add default authToken directive for auth-related endpoints
+        const includeDefaultSet = options?.includeDefaultSetDirective ?? true;
+        const effectiveSetDirectives = getEffectiveSetDirectives(
+            endpoint,
+            includeDefaultSet,
+        );
+        if (effectiveSetDirectives.length > 0) {
             parts.push(""); // Empty line before @set directives
-            for (const directive of endpoint.setDirectivesOverrides) {
-                parts.push(`@set ${directive.varName} = ${directive.responsePath}`);
+            for (const directive of effectiveSetDirectives) {
+                parts.push(
+                    `@set ${directive.varName} = ${directive.responsePath}`,
+                );
             }
         }
 
@@ -294,11 +302,18 @@ function replaceSystemVariables(text: string): string {
             Math.floor(Date.now() / 1000).toString(),
         )
         .replace(/\{\{\s*\$guid\s*\}\}/g, () => crypto.randomUUID())
-        .replace(/\{\{\s*\$randomInt\s+(-?\d+)\s+(-?\d+)\s*\}\}/g, (_, min, max) =>
-            (Math.floor(Math.random() * (parseInt(max) - parseInt(min))) + parseInt(min)).toString(),
+        .replace(
+            /\{\{\s*\$randomInt\s+(-?\d+)\s+(-?\d+)\s*\}\}/g,
+            (_, min, max) =>
+                (
+                    Math.floor(
+                        Math.random() * (parseInt(max) - parseInt(min)),
+                    ) + parseInt(min)
+                ).toString(),
         )
-        .replace(/\{\{\s*\$processEnv\s+(\w+)\s*\}\}/g, (_, envVar) =>
-            process.env[envVar] ?? "",
+        .replace(
+            /\{\{\s*\$processEnv\s+(\w+)\s*\}\}/g,
+            (_, envVar) => process.env[envVar] ?? "",
         );
 }
 
@@ -335,6 +350,111 @@ export function extractFileVariables(content: string): Record<string, string> {
     }
 
     return variables;
+}
+
+/**
+ * Detect if an endpoint is auth-related (login, register, etc.)
+ * and should have default @set directives for token extraction
+ */
+function isAuthEndpoint(endpoint: ApiEndpoint): boolean {
+    const pathLower = endpoint.requestPath.toLowerCase();
+    const nameLower = endpoint.name.toLowerCase();
+
+    // Only POST requests typically return tokens
+    if (endpoint.method !== "POST") {
+        return false;
+    }
+
+    // Common auth endpoint patterns
+    const authPatterns = [
+        /\blogin\b/,
+        /\bsignin\b/,
+        /\bsign-in\b/,
+        /\bsign_in\b/,
+        /\bregister\b/,
+        /\bsignup\b/,
+        /\bsign-up\b/,
+        /\bsign_up\b/,
+        /\bauthenticate\b/,
+        /\/auth\/token\b/,
+        /\/oauth\/token\b/,
+        /\/token\b$/,
+    ];
+
+    return authPatterns.some(
+        (pattern) => pattern.test(pathLower) || pattern.test(nameLower),
+    );
+}
+
+/**
+ * Infer the most likely token field name from the response based on endpoint characteristics
+ * Checks naming conventions (camelCase vs snake_case) and common patterns
+ */
+function inferTokenResponsePath(endpoint: ApiEndpoint): string {
+    const path = endpoint.requestPath.toLowerCase();
+    const body = String(
+        endpoint.bodySchema ?? endpoint.bodyOverrides ?? "",
+    ).toLowerCase();
+
+    const camelCaseTokens = [
+        "accessToken",
+        "token",
+        "idToken",
+        "authToken",
+        "jwt",
+    ];
+
+    const snakeCaseTokens = [
+        "access_token",
+        "token",
+        "id_token",
+        "auth_token",
+        "jwt",
+    ];
+
+    // Detect naming convention (lightweight)
+    const prefersSnakeCase = /oauth|\/token$/.test(path) || /_/.test(body);
+
+    const tokenCandidates = prefersSnakeCase
+        ? snakeCaseTokens
+        : camelCaseTokens;
+
+    // Favor common REST wrapping only if path suggests API-style response
+    const hasDataWrapper =
+        path.includes("/api") || path.includes("/v1") || path.includes("/v2");
+
+    const basePath = hasDataWrapper ? "response.body.data" : "response.body";
+
+    return `${basePath}.${tokenCandidates[0]}`;
+}
+
+/**
+ * Get effective @set directives for an endpoint
+ * Returns user overrides if present, otherwise returns default directives for auth endpoints
+ */
+function getEffectiveSetDirectives(
+    endpoint: ApiEndpoint,
+    includeDefaultSetDirective: boolean,
+): SetDirective[] {
+    // If user has set overrides, always use those
+    if (
+        endpoint.setDirectivesOverrides &&
+        endpoint.setDirectivesOverrides.length > 0
+    ) {
+        return endpoint.setDirectivesOverrides;
+    }
+
+    // For auth endpoints, provide default token extraction (if enabled)
+    if (includeDefaultSetDirective && isAuthEndpoint(endpoint)) {
+        return [
+            {
+                varName: "authToken",
+                responsePath: inferTokenResponsePath(endpoint),
+            },
+        ];
+    }
+
+    return [];
 }
 
 function formatUrlMultiline(url: string): string {

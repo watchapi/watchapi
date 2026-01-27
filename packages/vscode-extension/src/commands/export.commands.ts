@@ -78,6 +78,10 @@ async function exportCollections(
         "includeAuthorizationHeader",
         true,
     );
+    const includeDefaultSetDirective = config.get<boolean>(
+        "includeDefaultSetDirective",
+        true,
+    );
 
     // Export each collection
     let totalEndpoints = 0;
@@ -89,6 +93,7 @@ async function exportCollections(
         if (endpoints.length > 0) {
             await exportCollection(exportDir, collection, endpoints, env, {
                 includeAuthorizationHeader,
+                includeDefaultSetDirective,
             });
             totalEndpoints += endpoints.length;
         }
@@ -107,7 +112,10 @@ async function exportCollection(
     collection: Collection,
     endpoints: ApiEndpoint[],
     env: Record<string, string>,
-    options: { includeAuthorizationHeader: boolean },
+    options: {
+        includeAuthorizationHeader: boolean;
+        includeDefaultSetDirective: boolean;
+    },
 ): Promise<void> {
     // Sanitize collection name for filesystem
     const collectionDirName = sanitizeFilename(collection.name);

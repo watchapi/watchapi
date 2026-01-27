@@ -295,6 +295,12 @@
                     "markdownDescription": "Automatically add an empty `Authorization` header to new endpoints. Useful for APIs that require authentication.",
                     "order": 3
                 },
+                "watchapi.includeDefaultSetDirective": {
+                    "type": "boolean",
+                    "default": true,
+                    "markdownDescription": "Automatically add `@set authToken` directive to login/register endpoints to capture authentication tokens from responses.",
+                    "order": 4
+                },
                 "watchapi.autoSync.enabled": {
                     "type": "boolean",
                     "default": true,

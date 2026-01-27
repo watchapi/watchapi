@@ -44,15 +44,20 @@ export class EndpointsFileSystemProvider implements vscode.FileSystemProvider {
 
         const env = await readRestClientEnvFile();
 
-        // Read setting for Authorization header
+        // Read settings
         const config = vscode.workspace.getConfiguration("watchapi");
         const includeAuthorizationHeader = config.get<boolean>(
             "includeAuthorizationHeader",
             true,
         );
+        const includeDefaultSetDirective = config.get<boolean>(
+            "includeDefaultSetDirective",
+            true,
+        );
 
         const content = constructHttpFile(endpoint, env, {
             includeAuthorizationHeader,
+            includeDefaultSetDirective,
         });
 
         return Buffer.from(content, "utf8");
