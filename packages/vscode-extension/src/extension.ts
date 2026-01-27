@@ -6,37 +6,38 @@
 import * as vscode from "vscode";
 import { logger, LogLevel } from "@/shared";
 import { getConfig } from "@/shared/config";
-import { AuthService } from "@/auth";
+import { AuthService, StatusBarManager } from "@/modules/auth";
 import {
     CollectionsService,
     CollectionsTreeProvider,
     EndpointNode,
-} from "@/collections";
-import { EndpointsService } from "@/endpoints";
-import { CacheService, SyncService, FileWatcherService } from "@/sync";
-import { StatusBarManager, SyncConfigModal } from "@/ui";
-import { detectRoutes, hasAnyProjectType } from "@watchapi/parsers";
-import { EndpointsFileSystemProvider } from "./endpoints/endpoints.fs";
-import { openEndpointEditor } from "./endpoints/endpoints.editor";
-import { OrganizationService } from "@/organizations";
-import {
-    registerAuthCommands,
-    registerCollectionCommands,
-    registerEndpointCommands,
     registerNavigationCommands,
-    registerOrganizationCommands,
+} from "@/modules/collections";
+import { EndpointsService } from "@/modules/endpoints";
+import {
+    CacheService,
+    SyncService,
+    FileWatcherService,
+    SyncConfigModal,
     registerSyncCommands,
     registerSyncConfigCommands,
-    registerExportCommands,
-} from "@/commands";
-import { ExecutionButton } from "./ui/execute-request/execution-button";
-import { HttpFileCodeLensProvider } from "./ui/execute-request/code-lens-provider";
+} from "@/modules/sync";
+import { detectRoutes, hasAnyProjectType } from "@watchapi/parsers";
+import { EndpointsFileSystemProvider } from "./modules/endpoints/endpoints.fs";
+import { openEndpointEditor } from "./modules/endpoints/endpoints.editor";
+import { OrganizationService } from "@/modules/organizations";
+import { registerAuthCommands } from "@/modules/auth/auth.commands";
+import { registerCollectionCommands } from "@/modules/collections/collections.commands";
+import { registerEndpointCommands, registerExportCommands } from "@/modules/endpoints";
+import { registerOrganizationCommands } from "@/modules/organizations/organization.commands";
+import { ExecutionButton } from "./modules/endpoints/ui/execution-button";
+import { HttpFileCodeLensProvider } from "./modules/endpoints/ui/code-lens-provider";
 import {
     getResponseDocumentProvider,
     RESPONSE_DOCUMENT_SCHEME,
-} from "./ui/execute-request/response-document-provider";
-import { HttpVariableHoverProvider } from "./ui/execute-request/variable-hover-provider";
-import { registerSetDirectiveCompletionProvider } from "./ui/execute-request/set-directive-completion-provider";
+} from "./modules/endpoints/ui/response-document-provider";
+import { HttpVariableHoverProvider } from "./modules/endpoints/ui/variable-hover-provider";
+import { registerSetDirectiveCompletionProvider } from "./modules/endpoints/ui/set-directive-completion-provider";
 
 /**
  * Extension activation
@@ -52,7 +53,7 @@ export async function activate(
         const authService = new AuthService(context);
         const organizationService = new OrganizationService(context);
         const localStorage = new (
-            await import("../src/storage/index.js")
+            await import("./infrastructure/storage/index.js")
         ).LocalStorageService(context);
 
         const collectionsService = new CollectionsService();
