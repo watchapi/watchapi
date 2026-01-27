@@ -10,6 +10,10 @@ export * from "./trpc/trpc-parser";
 export * from "./payload-cms/payload-cms-parser";
 export * from "./shared/zod-schema-parser";
 
+// Base parser class for extending
+export { BaseParser } from "./shared/base-parser";
+export type { BaseParserConfig, DebugLogger } from "./shared/base-parser";
+
 // Detection and parsing utilities
 export * from "./detect";
 
