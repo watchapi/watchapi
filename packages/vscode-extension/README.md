@@ -1,54 +1,62 @@
-# WatchAPI - Code-Synced API Client
+# WatchAPI - API Client for Next.js, NestJS & tRPC
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/watchapi/watchapi/actions/workflows/ci.yml/badge.svg)](https://github.com/watchapi/watchapi/actions/workflows/ci.yml)
 [![Open VSX Downloads](https://img.shields.io/open-vsx/dt/watchapi/watchapi-client)](https://open-vsx.org/extension/watchapi/watchapi-client)
-![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen)
-![Last Commit](https://img.shields.io/github/last-commit/watchapi/watchapi)
 <a href="https://discord.gg/5JPCwzASbs">
 <img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Discord Chat" />
 </a>
 
-> **Make code as source of truth** for your API tests, sync endpoints directly from Next.js, NestJS, and tRPC.
+> **Make code as source of truth.** WatchAPI reads your backend code and builds the request collection for you — automatically synced, always up to date.
 
-![WatchAPI](./assets/readme/pull-from-code.gif "Import APIs from Next.js or NestJS")
+![WatchAPI auto-import from Next.js / NestJS code](./assets/readme/pull-from-code.gif "Import APIs from Next.js or NestJS")
 
-## Why WatchAPI Exists
+## What Makes WatchAPI Different
 
-- No need to manually write endpoints or reverse-engineer your APIs
-- Reduces API drifts and context switching
-- Closes the gap between actual code and tool for testing
+Every other API client (Postman, Thunder Client, Insomnia) makes you write endpoints manually. When you rename a route or add a query param, you have to update your client too. WatchAPI eliminates that entirely.
 
-## How WatchAPI Works
-
-- Extracts API schemas as ready to use tests
-- Removes the need to write tests manually
-- Organizing APIs directly in the code editor
-
-## Supported Environments
-
-- **Next.js (App router), NestJS, tRPC and PayloadCMS** - main focus
-- **Next.js (Pages router)** - less accurate
-
-![WatchAPI](./assets/readme/execute-request.gif "Execute and inspect API requests inside VS Code")
+- **Auto-imports endpoints** from Next.js, NestJS, tRPC, and PayloadCMS
+- **Auto-syncs on save** — change a route file, your collection updates instantly
+- **Lives in VS Code** — no browser tabs, no context switching, no separate app
+- **Local-first** — all data stays on your machine, no account required to start
+- **Open source** — MIT licensed, self-hostable
 
 ## Quick Start
 
-### Installation
+1. Install from [Marketplace](https://marketplace.visualstudio.com/items?itemName=WatchAPI.watchapi-client) or [Open VSX](https://open-vsx.org/extension/watchapi/watchapi-client)
+2. Click the WatchAPI icon in the activity bar
+3. Click **Sync from Code** — your endpoints appear automatically
 
-1. Install the extension: [Marketplace](https://marketplace.visualstudio.com/items?itemName=WatchAPI.watchapi-client) or [Open VSX](https://open-vsx.org/extension/watchapi/watchapi-client)
-2. Click the 'watch' icon in the activity bar
-3. **Pull from Code:** Auto-detect all Next.js/NestJS/tRPC endpoints (recommended)
-4. **Or create manually:** Click '+ New Collection' to add endpoints by hand
-5. Navigate and open requests to execute: 'Send Request'
+No config files. No manual setup. Works offline out of the box. Sign in only if you want team collaboration features.
 
----
+![Execute and inspect API requests inside VS Code](./assets/readme/execute-request.gif "Execute and inspect API requests inside VS Code")
 
-Works locally by default. Sign in optional (enables team features).
+## Supported Frameworks
+
+| Framework              | Support |
+| ---------------------- | ------- |
+| Next.js (App Router)   | Full    |
+| NestJS                 | Full    |
+| tRPC                   | Full    |
+| PayloadCMS             | Full    |
+| Next.js (Pages Router) | Partial |
+
+## WatchAPI vs the Alternatives
+
+| Feature                  | WatchAPI | Postman | Thunder Client | REST Client |
+| ------------------------ | -------- | ------- | -------------- | ----------- |
+| Auto-import from code    | ✓        | ✗       | ✗              | ✗           |
+| Auto-sync on file save   | ✓        | ✗       | ✗              | ✗           |
+| Native VS Code extension | ✓        | ✗       | ✓              | ✓           |
+| Team collaboration       | ✓        | ✓       | Paid only      | ✗           |
+| Production monitoring    | ✓        | ✓       | ✗              | ✗           |
+| Free tier                | ✓        | Limited | ✓              | ✓           |
+| Works offline            | ✓        | Limited | ✓              | ✓           |
+| Open source              | ✓        | ✗       | ✗              | ✓           |
 
 ## HTTP File Syntax
 
-WatchAPI uses `.http` files compatible with REST Client. Full syntax reference:
+WatchAPI uses `.http` files fully compatible with REST Client syntax.
 
 ### Basic Request
 
@@ -69,7 +77,7 @@ Content-Type: application/json
 }
 ```
 
-### File Variables
+### Variables
 
 Define variables at the top of your `.http` file:
 
@@ -83,7 +91,7 @@ Authorization: Bearer {{token}}
 
 ### Environment Variables
 
-Create `rest-client.env.json` in your workspace:
+Create `rest-client.env.json` in your workspace root:
 
 ```json
 {
@@ -98,8 +106,6 @@ Create `rest-client.env.json` in your workspace:
 }
 ```
 
-Use variables with `{{variableName}}` syntax.
-
 ### System Variables
 
 | Variable                 | Description              | Example                   |
@@ -107,53 +113,34 @@ Use variables with `{{variableName}}` syntax.
 | `{{$timestamp}}`         | Unix timestamp (seconds) | `1737550800`              |
 | `{{$guid}}`              | Random UUID v4           | `f47ac10b-58cc...`        |
 | `{{$randomInt min max}}` | Random integer           | `{{$randomInt 1 100}}`    |
-| `{{$processEnv VAR}}`    | Environment variable     | `{{$processEnv API_KEY}}` |
-
-## Comparison
-
-| Feature                    | WatchAPI | Postman | Thunder Client | REST Client |
-| -------------------------- | -------- | ------- | -------------- | ----------- |
-| Auto-Import Next.js/NestJS | ✓        | ✗       | ✗              | ✗           |
-| Native VS Code Extension   | ✓        | ✗       | ✓              | ✓           |
-| Team Collaboration         | ✓        | ✓       | Paid / Limited | ✗           |
-| Production Monitoring      | ✓        | ✓       | ✗              | ✗           |
-| Free Tier                  | ✓        | Limited | ✓              | ✓           |
-| Works Offline              | ✓        | Limited | ✓              | ✓           |
+| `{{$processEnv VAR}}`    | Process env variable     | `{{$processEnv API_KEY}}` |
 
 ## Privacy & Data
 
-**Local-First & Open Source:**
+**Local-first & open source:**
 
 - All collections stored on your machine by default
 - No telemetry or usage tracking
-- **Open source** under MIT license
 - Optional cloud sync (only when signed in)
 
-Privacy Policy: [https://watchapi.dev/privacy](https://watchapi.dev/privacy)
+[Privacy Policy](https://watchapi.dev/privacy)
 
 ## Contributing
 
-Welcome, lets collaborate:
+- **[Contributing Guide](CONTRIBUTING.md)** — get started
+- **[GitHub Issues](https://github.com/watchapi/watchapi/issues)** — report bugs
+- **[GitHub Discussions](https://github.com/watchapi/watchapi/discussions)** — request features
+- **[Code of Conduct](CODE_OF_CONDUCT.md)**
 
-- **Read the [Contributing Guide](CONTRIBUTING.md)** to get started
-- **Report bugs** via [GitHub Issues](https://github.com/watchapi/watchapi/issues)
-- **Request features** via [GitHub Discussions](https://github.com/watchapi/watchapi/discussions)
-- **Submit PRs** - we review and merge regularly
-- **Review the [Code of Conduct](CODE_OF_CONDUCT.md)** before contributing
-
-See [SECURITY.md](SECURITY.md) for reporting security vulnerabilities.
+See [SECURITY.md](SECURITY.md) for security vulnerability reporting.
 
 ## Support
 
-- **Report Issues:** [GitHub Issues](https://github.com/watchapi/watchapi/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/watchapi/watchapi/discussions)
-- **Documentation:** [docs.watchapi.dev](https://docs.watchapi.dev)
+- **Docs:** [docs.watchapi.dev](https://docs.watchapi.dev)
 - **Website:** [watchapi.dev](https://watchapi.dev)
+- **Issues:** [GitHub Issues](https://github.com/watchapi/watchapi/issues)
+- **Discord:** [Join the community](https://discord.gg/5JPCwzASbs)
 
 ## License
 
-This project is under the [MIT License](LICENSE).
-
----
-
-**Let your code define the testing workflow**
+[MIT License](LICENSE)
