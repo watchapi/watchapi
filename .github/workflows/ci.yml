@@ -182,7 +182,7 @@ jobs:
           directory: apps/docs/out
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
-  notify-on-failure:
+  notify:
     runs-on: ubuntu-latest
     needs: [test-vscode, test-cli, build-vsix, deploy-docs]
     if: failure()
