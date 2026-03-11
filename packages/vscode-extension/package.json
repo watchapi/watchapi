@@ -78,7 +78,7 @@
                 "command": "watchapi.deleteEndpoint",
                 "key": "delete",
                 "mac": "cmd+backspace",
-                "when": "view =~ /^watchapi\\.collections/ && viewItem == endpoint"
+                "when": "view =~ /^watchapi\\.collections/ && viewItem =~ /^endpoint/"
             },
             {
                 "command": "watchapi.deleteCollection",
@@ -168,6 +168,12 @@
                 "command": "watchapi.configureSync",
                 "title": "Configure Sync",
                 "icon": "$(gear)"
+            },
+            {
+                "command": "watchapi.goToFile",
+                "title": "Go to Source File",
+                "icon": "$(go-to-file)",
+                "enablement": "view =~ /^watchapi\\.collections/"
             }
         ],
         "viewsWelcome": [
@@ -254,8 +260,18 @@
                 },
                 {
                     "command": "watchapi.deleteEndpoint",
-                    "when": "view =~ /^watchapi\\.collections/ && (viewItem == endpoint || !viewItem)",
+                    "when": "view =~ /^watchapi\\.collections/ && (viewItem =~ /^endpoint/ || !viewItem)",
                     "group": "navigation@99"
+                },
+                {
+                    "command": "watchapi.goToFile",
+                    "when": "view =~ /^watchapi\\.collections/ && viewItem == endpoint",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "watchapi.goToFile",
+                    "when": "view =~ /^watchapi\\.collections/ && viewItem == endpoint",
+                    "group": "inline"
                 }
             ]
         },

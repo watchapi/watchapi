@@ -17,6 +17,7 @@ export interface ParserOptions {
 export interface ApiEndpoint {
 	id: string;
 	externalId?: string; // Stable identifier from source (file path + handler)
+	sourceLocation?: string; // Source file location in "path:line" format e.g. "/src/routes/users.ts:42"
 	name: string;
 	pathTemplate: string; // Route pattern from source (e.g., "/api/users/:id")
 	requestPath: string; // Actual request URL (e.g., "/api/users/123")
@@ -41,6 +42,7 @@ export interface ApiEndpoint {
 
 export interface CreateApiEndpointInput {
 	externalId?: string; // Stable identifier from source (file path + handler)
+	sourceLocation?: string; // Source file location in "path:line" format e.g. "/src/routes/users.ts:42"
 	name: string;
 	pathTemplate: string; // Route pattern from source
 	requestPath: string; // Actual request URL
@@ -63,6 +65,7 @@ export interface CreateApiEndpointInput {
 }
 
 export interface UpdateApiEndpointInput {
+	sourceLocation?: string; // Source file location in "path:line" format e.g. "/src/routes/users.ts:42"
 	name?: string;
 	pathTemplate?: string; // Route pattern from source
 	requestPath?: string; // Actual request URL
@@ -107,6 +110,7 @@ export interface ParsedRoute {
 	method: HttpMethod;
 	filePath: string;
 	handlerName?: string; // For generating stable externalId
+	line?: number; // Source line number (1-based) for navigation
 	type: "nextjs-app" | "nextjs-page" | "trpc" | "nestjs" | "payload-cms";
 	headers?: Record<string, string>;
 	query?: Record<string, string>;

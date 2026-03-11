@@ -12,6 +12,7 @@ tags:
   - name: Endpoints
   - name: Sync
   - name: Monitoring
+  - name: CLI
 paths:
   /collection.createCollection:
     post:
@@ -198,6 +199,10 @@ paths:
                             anyOf:
                               - type: string
                               - type: "null"
+                          sourceLocation:
+                            anyOf:
+                              - type: string
+                              - type: "null"
                           bodySchema:
                             anyOf:
                               - type: string
@@ -332,6 +337,7 @@ paths:
                           - requestPath
                           - method
                           - externalId
+                          - sourceLocation
                           - bodyOverrides
                           - setDirectives
                           - setDirectivesOverrides
@@ -610,6 +616,10 @@ paths:
                             anyOf:
                               - type: string
                               - type: "null"
+                          sourceLocation:
+                            anyOf:
+                              - type: string
+                              - type: "null"
                           bodySchema:
                             anyOf:
                               - type: string
@@ -744,6 +754,7 @@ paths:
                           - requestPath
                           - method
                           - externalId
+                          - sourceLocation
                           - bodyOverrides
                           - setDirectives
                           - setDirectivesOverrides
@@ -785,6 +796,373 @@ paths:
         "401": *a2
         "403": *a3
         "404": *a5
+        "500": *a4
+  /cli.getCollection:
+    get:
+      operationId: cli-getCollection
+      summary: Get collection for CLI
+      description: Fetch a collection with its endpoints in CLI-friendly format.
+      tags:
+        - CLI
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: collectionId
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  endpoints:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        url:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        method:
+                          type: string
+                        headers:
+                          type: object
+                          propertyNames:
+                            type: string
+                          additionalProperties:
+                            type: string
+                        body:
+                          type: string
+                        expectedStatus:
+                          type: number
+                        maxResponseTime:
+                          type: number
+                      required:
+                        - id
+                        - name
+                        - url
+                        - method
+                        - expectedStatus
+                      additionalProperties: false
+                required:
+                  - id
+                  - name
+                  - endpoints
+                additionalProperties: false
+        "400": *a1
+        "401": *a2
+        "403": *a3
+        "404": *a5
+        "500": *a4
+  /cli.submitReport:
+    post:
+      operationId: cli-submitReport
+      summary: Submit CLI report
+      description: Submit check results from the CLI and detect regressions.
+      tags:
+        - CLI
+      security:
+        - bearerAuth: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collectionId:
+                  type: string
+                environment:
+                  type: string
+                results:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      endpointId:
+                        type: string
+                      status:
+                        type: string
+                        enum:
+                          - PASSED
+                          - FAILED
+                          - ERROR
+                      actualStatus:
+                        type: number
+                      responseTime:
+                        type: number
+                      error:
+                        type: string
+                      timestamp:
+                        type: string
+                      assertions:
+                        type: object
+                        properties:
+                          statusCode:
+                            type: boolean
+                          responseTime:
+                            type: boolean
+                          bodyContains:
+                            type: boolean
+                          bodySchema:
+                            type: boolean
+                        required:
+                          - statusCode
+                    required:
+                      - endpointId
+                      - status
+                      - responseTime
+                      - timestamp
+                summary:
+                  type: object
+                  properties:
+                    total:
+                      type: number
+                    passed:
+                      type: number
+                    failed:
+                      type: number
+                    errors:
+                      type: number
+                  required:
+                    - total
+                    - passed
+                    - failed
+                    - errors
+                timestamp:
+                  type: string
+              required:
+                - collectionId
+                - environment
+                - results
+                - summary
+                - timestamp
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  regressions:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - success
+                  - regressions
+                additionalProperties: false
+        "400": *a1
+        "401": *a2
+        "403": *a3
+        "500": *a4
+  /cli.syncApis:
+    post:
+      operationId: cli-syncApis
+      summary: Sync APIs from CLI
+      description: Sync API endpoint definitions discovered by the CLI into collections.
+      tags:
+        - CLI
+      security:
+        - bearerAuth: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target:
+                  type: string
+                apis:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      method:
+                        type: string
+                      sourceKey:
+                        type: string
+                      router:
+                        type: string
+                      procedure:
+                        type: string
+                      path:
+                        type: string
+                      visibility:
+                        type: string
+                      file:
+                        type: string
+                      line:
+                        type: number
+                      metadata:
+                        type: object
+                        propertyNames:
+                          type: string
+                        additionalProperties: {}
+                    required:
+                      - id
+                      - name
+                      - method
+                metadata:
+                  type: object
+                  propertyNames:
+                    type: string
+                  additionalProperties: {}
+              required:
+                - apis
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  created:
+                    type: number
+                  updated:
+                    type: number
+                  deactivated:
+                    type: number
+                  unchanged:
+                    type: number
+                  received:
+                    type: number
+                  message:
+                    type: string
+                required:
+                  - success
+                  - created
+                  - updated
+                  - deactivated
+                  - unchanged
+                  - received
+                  - message
+                additionalProperties: false
+        "400": *a1
+        "401": *a2
+        "403": *a3
+        "500": *a4
+  /cli.pushApis:
+    post:
+      operationId: cli-pushApis
+      summary: Push APIs from CLI (deprecated)
+      description: "Deprecated: use syncApis instead. Kept for backwards compatibility with older CLI versions."
+      tags:
+        - CLI
+      security:
+        - bearerAuth: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target:
+                  type: string
+                apis:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      method:
+                        type: string
+                      sourceKey:
+                        type: string
+                      router:
+                        type: string
+                      procedure:
+                        type: string
+                      path:
+                        type: string
+                      visibility:
+                        type: string
+                      file:
+                        type: string
+                      line:
+                        type: number
+                      metadata:
+                        type: object
+                        propertyNames:
+                          type: string
+                        additionalProperties: {}
+                    required:
+                      - id
+                      - name
+                      - method
+                metadata:
+                  type: object
+                  propertyNames:
+                    type: string
+                  additionalProperties: {}
+              required:
+                - apis
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  created:
+                    type: number
+                  updated:
+                    type: number
+                  deactivated:
+                    type: number
+                  unchanged:
+                    type: number
+                  received:
+                    type: number
+                  message:
+                    type: string
+                required:
+                  - success
+                  - created
+                  - updated
+                  - deactivated
+                  - unchanged
+                  - received
+                  - message
+                additionalProperties: false
+        "400": *a1
+        "401": *a2
+        "403": *a3
         "500": *a4
   /auth.refreshToken:
     post:
@@ -947,6 +1325,8 @@ paths:
                     - OPTIONS
                 externalId:
                   type: string
+                sourceLocation:
+                  type: string
                 bodySchema:
                   type: string
                 bodyOverrides:
@@ -1055,6 +1435,10 @@ paths:
                     anyOf:
                       - type: string
                       - type: "null"
+                  sourceLocation:
+                    anyOf:
+                      - type: string
+                      - type: "null"
                   bodySchema:
                     anyOf:
                       - type: string
@@ -1189,6 +1573,7 @@ paths:
                   - requestPath
                   - method
                   - externalId
+                  - sourceLocation
                   - bodyOverrides
                   - setDirectives
                   - setDirectivesOverrides
@@ -1252,6 +1637,10 @@ paths:
                     anyOf:
                       - type: string
                       - type: "null"
+                  sourceLocation:
+                    anyOf:
+                      - type: string
+                      - type: "null"
                   bodySchema:
                     anyOf:
                       - type: string
@@ -1386,6 +1775,7 @@ paths:
                   - requestPath
                   - method
                   - externalId
+                  - sourceLocation
                   - bodyOverrides
                   - setDirectives
                   - setDirectivesOverrides
@@ -1442,6 +1832,10 @@ paths:
                     method:
                       type: string
                     externalId:
+                      anyOf:
+                        - type: string
+                        - type: "null"
+                    sourceLocation:
                       anyOf:
                         - type: string
                         - type: "null"
@@ -1579,6 +1973,7 @@ paths:
                     - requestPath
                     - method
                     - externalId
+                    - sourceLocation
                     - bodyOverrides
                     - setDirectives
                     - setDirectivesOverrides
@@ -1643,6 +2038,8 @@ paths:
                     - HEAD
                     - OPTIONS
                 externalId:
+                  type: string
+                sourceLocation:
                   type: string
                 bodySchema:
                   type: string
@@ -1746,6 +2143,10 @@ paths:
                     anyOf:
                       - type: string
                       - type: "null"
+                  sourceLocation:
+                    anyOf:
+                      - type: string
+                      - type: "null"
                   bodySchema:
                     anyOf:
                       - type: string
@@ -1880,6 +2281,7 @@ paths:
                   - requestPath
                   - method
                   - externalId
+                  - sourceLocation
                   - bodyOverrides
                   - setDirectives
                   - setDirectivesOverrides
@@ -1975,6 +2377,10 @@ paths:
                     anyOf:
                       - type: string
                       - type: "null"
+                  sourceLocation:
+                    anyOf:
+                      - type: string
+                      - type: "null"
                   bodySchema:
                     anyOf:
                       - type: string
@@ -2109,6 +2515,7 @@ paths:
                   - requestPath
                   - method
                   - externalId
+                  - sourceLocation
                   - bodyOverrides
                   - setDirectives
                   - setDirectivesOverrides
@@ -2223,6 +2630,10 @@ paths:
                     anyOf:
                       - type: string
                       - type: "null"
+                  sourceLocation:
+                    anyOf:
+                      - type: string
+                      - type: "null"
                   bodySchema:
                     anyOf:
                       - type: string
@@ -2357,6 +2768,7 @@ paths:
                   - requestPath
                   - method
                   - externalId
+                  - sourceLocation
                   - bodyOverrides
                   - setDirectives
                   - setDirectivesOverrides
@@ -2441,6 +2853,10 @@ paths:
                     method:
                       type: string
                     externalId:
+                      anyOf:
+                        - type: string
+                        - type: "null"
+                    sourceLocation:
                       anyOf:
                         - type: string
                         - type: "null"
@@ -2578,6 +2994,7 @@ paths:
                     - requestPath
                     - method
                     - externalId
+                    - sourceLocation
                     - bodyOverrides
                     - setDirectives
                     - setDirectivesOverrides

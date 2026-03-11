@@ -154,8 +154,7 @@ export async function activate(
 
         // Initialize file watcher for real-time sync on save
         new FileWatcherService(
-            collectionsService,
-            endpointsService,
+            syncConfigModal,
             treeProvider,
             context,
         );
