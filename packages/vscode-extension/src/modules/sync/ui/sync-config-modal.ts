@@ -21,7 +21,8 @@ type UpdateField =
     | "method"
     | "name"
     | "bodySchema"
-    | "headersSchema";
+    | "headersSchema"
+    | "sourceLocation";
 
 export class SyncConfigModal {
     private collectionsService: CollectionsService;
@@ -109,6 +110,43 @@ export class SyncConfigModal {
         }
     }
 
+    /**
+     * Silently merge routes with no progress UI — used by FileWatcherService
+     */
+    async syncRoutesSilent(routes: ParsedRoute[]): Promise<void> {
+        if (routes.length === 0) return;
+
+        const groups = this.groupRoutesByPrefix(
+            this.applyDomainPrefix(
+                routes.map((r) => ({ ...r, name: humanizeRouteName(r) })),
+            ),
+        );
+
+        const existingCollections = await this.collectionsService.getAll();
+        const workspaceRoot =
+            vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "";
+        const stats = { processed: 0, created: 0, updated: 0, deactivated: 0 };
+
+        for (const [groupName, groupRoutes] of groups) {
+            const collection = await this.findOrCreateCollection(
+                existingCollections,
+                groupName,
+            );
+            const existingEndpoints =
+                await this.endpointsService.getByCollectionId(collection.id);
+            const plan = this.buildMergePlan(
+                groupRoutes,
+                existingEndpoints,
+                workspaceRoot,
+            );
+            await this.executeMergePlan(plan, collection.id, stats);
+        }
+
+        logger.info(
+            `Silent sync complete: ${stats.created} created, ${stats.updated} updated`,
+        );
+    }
+
     private applyDomainPrefix(routes: ParsedRoute[]): ParsedRoute[] {
         return routes.map((route) => ({
             ...route,
@@ -167,6 +205,7 @@ export class SyncConfigModal {
                 "name",
                 "bodySchema",
                 "headersSchema",
+                "sourceLocation",
             ] as const,
         },
         // When endpoint exists in source but not destination
@@ -354,6 +393,11 @@ export class SyncConfigModal {
                 case "headersSchema":
                     payload.headersSchema = route.headers;
                     break;
+                case "sourceLocation":
+                    payload.sourceLocation = route.line
+                        ? `${route.filePath}:${route.line}`
+                        : route.filePath;
+                    break;
             }
         }
         return payload;
@@ -376,6 +420,9 @@ export class SyncConfigModal {
             pathTemplate: route.path,
             requestPath: route.path,
             method: route.method,
+            sourceLocation: route.line
+                ? `${route.filePath}:${route.line}`
+                : route.filePath,
             // Initialize schema from code
             bodySchema: route.body,
             headersSchema: route.headers,
