@@ -965,7 +965,8 @@ export class NestJsParser extends BaseParser {
             path: handler.path,
             method: handler.method,
             filePath: this.joinPath(handler.file),
-            type: "nestjs",
+            line: handler.line,
+            type: "nestjs" as const,
             headers:
                 Object.keys(handler.headers).length > 0
                     ? handler.headers

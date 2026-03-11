@@ -419,6 +419,7 @@ export class NextPagesParser extends BaseParser {
                 path: handler.path,
                 method: handler.method,
                 filePath: this.joinPath(handler.file),
+                line: handler.line,
                 type: "nextjs-page" as const,
                 headers:
                     Object.keys(handler.headers).length > 0 ? handler.headers : undefined,

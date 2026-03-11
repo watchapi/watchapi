@@ -560,6 +560,7 @@ export class TrpcParser extends BaseParser {
                 path: routePath,
                 method,
                 filePath: this.joinPath(node.file),
+                line: node.line,
                 type: "trpc" as const,
                 headers:
                     Object.keys(node.headers).length > 0 ? node.headers : undefined,

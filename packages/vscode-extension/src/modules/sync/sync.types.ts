@@ -11,6 +11,7 @@ export interface ParsedRoute {
     method: HttpMethod;
     filePath: string;
     handlerName?: string; // For generating stable externalId
+    line?: number; // Source line number (1-based) for navigation
     type: "nextjs-app" | "nextjs-page" | "trpc" | "nestjs" | "payload-cms";
     headers?: Record<string, string>;
     query?: Record<string, string>;

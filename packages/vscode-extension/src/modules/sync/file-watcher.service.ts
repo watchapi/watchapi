@@ -110,7 +110,7 @@ export class FileWatcherService implements vscode.Disposable {
             logger.info(
                 `Auto-syncing ${affectedRoutes.length} routes from ${changedFiles.size} file(s)`,
             );
-            await this.syncConfigModal.syncRoutesSilent(affectedRoutes);
+            await this.syncConfigModal.syncRoutesSilent(affectedRoutes, changedFiles);
             this.treeProvider.refresh();
             logger.info("Auto-sync complete");
         } catch (error) {

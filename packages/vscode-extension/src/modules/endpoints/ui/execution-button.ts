@@ -68,6 +68,7 @@ export class ExecutionButton {
                 partialEndpoint.requestPath ||
                 "",
             externalId: null,
+            sourceLocation: null,
             bodySchema: partialEndpoint.bodySchema ?? null,
             headersOverrides: partialEndpoint.headersOverrides,
             queryOverrides: partialEndpoint.queryOverrides,

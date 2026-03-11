@@ -25,6 +25,7 @@ export const COMMANDS = {
     SWITCH_ORGANIZATION: "watchapi.switchOrganization",
     WARNING: "watchapi.warning",
     EXPORT: "watchapi.export",
+    GO_TO_FILE: "watchapi.goToFile",
 } as const;
 
 // Storage keys
@@ -35,6 +36,7 @@ export const STORAGE_KEYS = {
     SELECTED_ORG_ID: "watchapi.selected_org_id",
     CACHE_PREFIX: "watchapi.cache",
     LAST_SYNC: "watchapi.last_sync",
+    SOURCE_POSITIONS: "watchapi.source_positions",
 } as const;
 
 // Sync Configuration
