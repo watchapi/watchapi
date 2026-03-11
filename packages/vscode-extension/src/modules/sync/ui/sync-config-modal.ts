@@ -112,8 +112,9 @@ export class SyncConfigModal {
 
     /**
      * Silently merge routes with no progress UI — used by FileWatcherService
+     * Pass changedFiles to enable deletion of endpoints removed from those files
      */
-    async syncRoutesSilent(routes: ParsedRoute[]): Promise<void> {
+    async syncRoutesSilent(routes: ParsedRoute[], changedFiles?: Set<string>): Promise<void> {
         if (routes.length === 0) return;
 
         const groups = this.groupRoutesByPrefix(
@@ -138,12 +139,13 @@ export class SyncConfigModal {
                 groupRoutes,
                 existingEndpoints,
                 workspaceRoot,
+                changedFiles,
             );
             await this.executeMergePlan(plan, collection.id, stats);
         }
 
         logger.info(
-            `Silent sync complete: ${stats.created} created, ${stats.updated} updated`,
+            `Silent sync complete: ${stats.created} created, ${stats.updated} updated, ${stats.deactivated} deleted`,
         );
     }
 
@@ -287,11 +289,13 @@ export class SyncConfigModal {
     /**
      * Build a declarative merge plan
      * Classifies each endpoint into CREATE/UPDATE/DEACTIVATE buckets
+     * When changedFiles is provided, orphans are only those from changed files
      */
     private buildMergePlan(
         sourceRoutes: ParsedRoute[],
         existingEndpoints: ApiEndpoint[],
         workspaceRoot: string,
+        changedFiles?: Set<string>,
     ) {
         const existingByExternalId = new Map(
             existingEndpoints
@@ -321,11 +325,31 @@ export class SyncConfigModal {
         }
 
         // Find orphaned endpoints
-        const toDeactivate = existingEndpoints.filter(
-            (e) => e.externalId && !sourceExternalIds.has(e.externalId),
-        );
+        // When changedFiles is provided, only delete endpoints whose source file
+        // is one of the changed files (avoids deleting routes from untouched files)
+        const toDeactivate = existingEndpoints.filter((e) => {
+            if (!e.externalId || sourceExternalIds.has(e.externalId)) return false;
+            if (!changedFiles) return false;
+            return this.isEndpointFromChangedFile(e, changedFiles);
+        });
 
         return { toCreate, toUpdate, toDeactivate };
+    }
+
+    /**
+     * Check if an endpoint's source file is one of the changed files
+     */
+    private isEndpointFromChangedFile(endpoint: ApiEndpoint, changedFiles: Set<string>): boolean {
+        if (!endpoint.sourceLocation) return false;
+        // sourceLocation format: "filePath:line" or just "filePath"
+        const lastColon = endpoint.sourceLocation.lastIndexOf(":");
+        const hasLine =
+            lastColon > 0 &&
+            /^\d+$/.test(endpoint.sourceLocation.slice(lastColon + 1));
+        const filePath = hasLine
+            ? endpoint.sourceLocation.slice(0, lastColon)
+            : endpoint.sourceLocation;
+        return changedFiles.has(filePath);
     }
 
     /**
@@ -359,8 +383,11 @@ export class SyncConfigModal {
             stats.created++;
         }
 
-        // Skip deactivations - orphaned endpoints are ignored (left as-is)
-        // Users can manually delete endpoints if needed
+        // Delete endpoints removed from their source file
+        for (const endpoint of plan.toDeactivate) {
+            await this.endpointsService.delete(endpoint.id);
+            stats.deactivated++;
+        }
     }
 
     /**
