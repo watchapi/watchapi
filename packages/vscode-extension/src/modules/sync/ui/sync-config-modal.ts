@@ -111,10 +111,13 @@ export class SyncConfigModal {
     }
 
     /**
-     * Silently merge routes with no progress UI — used by FileWatcherService
+     * Silently merge routes with no progress UI – used by FileWatcherService
      * Pass changedFiles to enable deletion of endpoints removed from those files
      */
-    async syncRoutesSilent(routes: ParsedRoute[], changedFiles?: Set<string>): Promise<void> {
+    async syncRoutesSilent(
+        routes: ParsedRoute[],
+        changedFiles?: Set<string>,
+    ): Promise<void> {
         if (routes.length === 0) return;
 
         const groups = this.groupRoutesByPrefix(
@@ -328,7 +331,8 @@ export class SyncConfigModal {
         // When changedFiles is provided, only delete endpoints whose source file
         // is one of the changed files (avoids deleting routes from untouched files)
         const toDeactivate = existingEndpoints.filter((e) => {
-            if (!e.externalId || sourceExternalIds.has(e.externalId)) return false;
+            if (!e.externalId || sourceExternalIds.has(e.externalId))
+                return false;
             if (!changedFiles) return false;
             return this.isEndpointFromChangedFile(e, changedFiles);
         });
@@ -339,7 +343,10 @@ export class SyncConfigModal {
     /**
      * Check if an endpoint's source file is one of the changed files
      */
-    private isEndpointFromChangedFile(endpoint: ApiEndpoint, changedFiles: Set<string>): boolean {
+    private isEndpointFromChangedFile(
+        endpoint: ApiEndpoint,
+        changedFiles: Set<string>,
+    ): boolean {
         if (!endpoint.sourceLocation) return false;
         // sourceLocation format: "filePath:line" or just "filePath"
         const lastColon = endpoint.sourceLocation.lastIndexOf(":");

@@ -7,7 +7,7 @@
 <img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Discord Chat" />
 </a>
 
-> **Make code as source of truth.** WatchAPI reads your backend code and builds the request collection for you — automatically synced, always up to date.
+> **Make code as source of truth.** WatchAPI reads your backend code and builds the request collection for you – automatically synced, always up to date.
 
 ![WatchAPI auto-import from Next.js / NestJS code](./assets/readme/pull-from-code.gif "Import APIs from Next.js or NestJS")
 
@@ -16,16 +16,16 @@
 Every other API client (Postman, Thunder Client, Insomnia) makes you write endpoints manually. When you rename a route or add a query param, you have to update your client too. WatchAPI eliminates that entirely.
 
 - **Auto-imports endpoints** from Next.js, NestJS, tRPC, and PayloadCMS
-- **Auto-syncs on save** — change a route file, your collection updates instantly
-- **Lives in VS Code** — no browser tabs, no context switching, no separate app
-- **Local-first** — all data stays on your machine, no account required to start
-- **Open source** — MIT licensed, self-hostable
+- **Auto-syncs on save** – change a route file, your collection updates instantly
+- **Lives in VS Code** – no browser tabs, no context switching, no separate app
+- **Local-first** – all data stays on your machine, no account required to start
+- **Open source** – MIT licensed, self-hostable
 
 ## Quick Start
 
 1. Install from [Marketplace](https://marketplace.visualstudio.com/items?itemName=WatchAPI.watchapi-client) or [Open VSX](https://open-vsx.org/extension/watchapi/watchapi-client)
 2. Click the WatchAPI icon in the activity bar
-3. Click **Sync from Code** — your endpoints appear automatically
+3. Click **Sync from Code** – your endpoints appear automatically
 
 No config files. No manual setup. Works offline out of the box. Sign in only if you want team collaboration features.
 
@@ -127,9 +127,9 @@ Create `rest-client.env.json` in your workspace root:
 
 ## Contributing
 
-- **[Contributing Guide](CONTRIBUTING.md)** — get started
-- **[GitHub Issues](https://github.com/watchapi/watchapi/issues)** — report bugs
-- **[GitHub Discussions](https://github.com/watchapi/watchapi/discussions)** — request features
+- **[Contributing Guide](CONTRIBUTING.md)** – get started
+- **[GitHub Issues](https://github.com/watchapi/watchapi/issues)** – report bugs
+- **[GitHub Discussions](https://github.com/watchapi/watchapi/discussions)** – request features
 - **[Code of Conduct](CODE_OF_CONDUCT.md)**
 
 See [SECURITY.md](SECURITY.md) for security vulnerability reporting.

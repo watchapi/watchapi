@@ -2,7 +2,7 @@
 
 ## Our Pledge
 
-We aim to provide a respectful, constructive, and professional environment for everyone who interacts with this project — including users, contributors, and maintainers.
+We aim to provide a respectful, constructive, and professional environment for everyone who interacts with this project – including users, contributors, and maintainers.
 
 Participation in this project implies agreement to follow this Code of Conduct.
 

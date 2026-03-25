@@ -7,7 +7,10 @@ import {
 
 const FILE_VARIABLE_REGEX = /^\s*@([^\s=]+)\s*=\s*(.*?)\s*$/;
 
-const SYSTEM_VARIABLE_INFO: Record<string, { example: string; description: string }> = {
+const SYSTEM_VARIABLE_INFO: Record<
+    string,
+    { example: string; description: string }
+> = {
     $timestamp: {
         example: "Unix timestamp",
         description: "Current time as seconds since epoch",
@@ -49,7 +52,10 @@ export class HttpVariableHoverProvider implements vscode.HoverProvider {
         }
 
         // Environment variable
-        const envValue = await this.findEnvironmentVariable(variableName, document);
+        const envValue = await this.findEnvironmentVariable(
+            variableName,
+            document,
+        );
         if (envValue !== undefined) {
             return this.createHover(envValue, "Environment Variable", range);
         }
@@ -91,7 +97,9 @@ export class HttpVariableHoverProvider implements vscode.HoverProvider {
 
         const md = new vscode.MarkdownString();
         md.appendCodeblock(preview, "text");
-        md.appendMarkdown(`\n**System Variable** — ${info?.description ?? baseVar}`);
+        md.appendMarkdown(
+            `\n**System Variable** – ${info?.description ?? baseVar}`,
+        );
 
         return new vscode.Hover(md, range);
     }
@@ -158,7 +166,12 @@ export class HttpVariableHoverProvider implements vscode.HoverProvider {
             const start = match.index;
             const end = match.index + match[0].length;
             if (position.character >= start && position.character <= end) {
-                return new vscode.Range(position.line, start, position.line, end);
+                return new vscode.Range(
+                    position.line,
+                    start,
+                    position.line,
+                    end,
+                );
             }
         }
         return undefined;
