@@ -288,13 +288,13 @@ export class AuthService {
       // Load user profile
       try {
         await this.verifySession();
+        vscode.window.showInformationMessage(
+          "Successfully signed in to WatchAPI",
+        );
       } catch {
         await this.clearSession();
+        throw new AuthenticationError("Failed to verify session after sign-in");
       }
-
-      vscode.window.showInformationMessage(
-        "Successfully signed in to WatchAPI",
-      );
     } catch (error) {
       logger.error("Auth callback failed", error);
       vscode.window.showErrorMessage("Sign-in failed. Please try again.");
