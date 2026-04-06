@@ -2,7 +2,7 @@
     "name": "watchapi-client",
     "displayName": "WatchAPI - API Client for Next.js, NestJS & tRPC",
     "description": "Auto-import REST API endpoints from your code. Works with Next.js, NestJS, tRPC & PayloadCMS. No manual setup – endpoints sync when you save.",
-    "version": "0.4.8",
+    "version": "0.4.9",
     "icon": "assets/marketplace-logo.png",
     "publisher": "watchapi",
     "engines": {
